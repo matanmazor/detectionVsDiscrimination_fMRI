@@ -1,0 +1,27 @@
+function [rating]= rateConf(w,params)
+
+timer = tic();
+
+% initial confidence rating is determined randomly
+rating = randperm(6,1);
+circle_size = [-params.conf_width_px/2 -params.conf_height_px/2, ...
+    params.conf_width_px/2 params.conf_height_px/2];
+while toc(timer)<params.time_to_conf
+    KbReleaseWait([][toc(timer)-params.time_to]
+    Screen('FillOval',w,[255,255,255]-rating/6*[0,255,255],...
+        [params.center params.center]+circle_size*rating/6)
+    Screen('FrameOval',w,[255,255,255],[params.center params.center]+circle_size,4)
+    Screen('Flip',w)
+    [keyIsDown, seconds, keyCode ] = KbCheck;
+    if keyIsDown
+        if keyCode(KbName('ESCAPE'))
+            break;
+        end
+        if keyCode(KbName('1!')) && keyIsDown
+            rating=max(1,rating-1);
+        elseif keyCode(KbName('2@')) && keyIsDown
+            rating=min(6,rating+1);
+        end
+    end
+end
+end
