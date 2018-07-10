@@ -77,11 +77,11 @@ else
 end
 params.Nsets = params.trialsPerBlock*params.Nblocks;
 
-distance_from_monitor = 80; % en cm
-mon_width = 40.5; %VERIFICAR, ancho del monitor
-mon_height = mon_width*6/8; %VERIFICAR
-newResolution.width = 1600;
-newResolution.height = 1200;
+distance_from_monitor = 77; % en cm
+mon_width = 29; %VERIFICAR, ancho del monitor
+mon_height = 21.5; %VERIFICAR
+newResolution.width = 1024;
+newResolution.height = 768;
 cm_per_px_width  = mon_width/newResolution.width;
 cm_per_px_height = mon_height/newResolution.height;
 params.deg_per_px_width = cm_per_px_width * atan(1/distance_from_monitor) * 360/(2*pi);
@@ -112,16 +112,15 @@ params.annulus_diameter = 6.5; %degrees
 
 [params.center(1), params.center(2)] = RectCenter(rect);
 params.rect = rect;
-params.offset = 300;
 params.yesTexture = Screen('MakeTexture', w, imread(fullfile('textures','yes.png')));
 params.noTexture = Screen('MakeTexture', w, imread(fullfile('textures','no.png')));
 params.horiTexture = Screen('MakeTexture', w, imread(fullfile('textures','hori.png')));
 params.vertTexture = Screen('MakeTexture', w, imread(fullfile('textures','vert.png')));
 
-params.positions = {[params.center(1)-400, params.center(2)-50,...
-                            params.center(1)-300, params.center(2)+50],...
-             [params.center(1)+300, params.center(2)-50,...
-                            params.center(1)+400, params.center(2)+50]};
+params.positions = {[params.center(1)-250, params.center(2)-50,...
+                            params.center(1)-150, params.center(2)+50],...
+             [params.center(1)+150, params.center(2)-50,...
+                            params.center(1)+250, params.center(2)+50]};
 
 params.keys = {'1!','2@'};
 
