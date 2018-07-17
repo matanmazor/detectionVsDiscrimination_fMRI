@@ -30,7 +30,7 @@ doublebuffer=1;
 [w, rect] = Screen('OpenWindow', screenNumber, 0,[], 32, doublebuffer+1);
 
 %load parameters
-params = loadPars(w, rect, savestr);
+params = loadPars(w, rect, savestr, 0);
 
 KbName('UnifyKeyNames');
 AssertOpenGL;
@@ -99,16 +99,16 @@ for num_trial = 1:params.Nsets
         vbl=Screen('Flip', w);
         pause(5);
     end
+    
     % monitor and update coherence levels
     % if you're in the first two blocks of the first session, reduce
     % coherence every 10 trials for the first 40 trials if performance was
     % above chance
-    
     if ~params.practice && ceil(num_trial/params.trialsPerBlock)<3 && params.num_session==1 && ...
             ismember(mod(num_trial,params.trialsPerBlock), 11:10:41)
         sum(log.correct(num_trial-9:num_trial))
         if sum(log.correct(num_trial-10:num_trial-1))>5
-            params.Wg = params.Wg-0.15
+            params.Wg = params.Wg*0.5
         end
         if detection
             params.DetWg = [params.DetWg; params.Wg];
@@ -117,10 +117,10 @@ for num_trial = 1:params.Nsets
         end
     elseif ~params.practice && mod(num_trial, 20)==1 && mod(num_trial,params.trialsPerBlock)~=1
         current_performance = mean(log.correct(num_trial-20:num_trial-1));
-        if current_performance>0.8
-            params.Wg = params.Wg-0.03
-        elseif current_performance<0.6
-            params.Wg = params.Wg+0.03
+        if current_performance>0.9
+            params.Wg = params.Wg*0.8;
+        elseif current_performance<0.5
+            params.Wg = params.Wg/0.8;
         end
         if detection
             params.DetWg = [params.DetWg; params.Wg];
@@ -167,7 +167,15 @@ for num_trial = 1:params.Nsets
     while (GetSecs - tini)<params.display_time
         continue
     end
+    
+    DrawFormattedText(w, '+','center','center');
     vbl=Screen('Flip', w);
+    while (GetSecs - tini)<params.display_time+0.1
+        [keyIsDown, seconds, keyCode ] = KbCheck;
+        if keyCode(KbName('ESCAPE'))
+            break;
+        end
+    end
     
     %% Wait for response
     response = [nan nan];

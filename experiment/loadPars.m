@@ -1,4 +1,4 @@
-function params = loadPars(w, rect, savestr)
+function params = loadPars(w, rect, savestr, calibration)
 
 params.scanner_signal = KbName('5%');
 params.subj = savestr{1};
