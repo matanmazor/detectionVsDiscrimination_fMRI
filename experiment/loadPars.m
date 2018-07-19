@@ -3,6 +3,7 @@ function params = loadPars(w, rect, savestr, calibration)
 params.scanner_signal = KbName('5%');
 params.subj = savestr{1};
 params.practice = str2double(savestr{2});
+params.multiband = str2double(savestr{3});
 
 load(fullfile('data','subjects.mat'));
 if ismember(params.subj, subjects.keys)
@@ -16,7 +17,7 @@ else
 end
 
 %MM: A while-loop to start next session in line.
-if ~params.practice
+if ~params.practice && ~calibration
     num_session=0;
     stopper=0;
     while stopper==0
@@ -30,8 +31,11 @@ if ~params.practice
     end
     params.num_session = num_session;
     params.filename = aux_filename;
+else
+    params.num_session = 0;
+    num_session=0;
+    params.filename = strjoin({params.subj,'calibration.mat'},'_');
 end
-
 %% randomize
 if ~params.practice
     subject_num = str2num(params.subj(1:2));
@@ -41,8 +45,8 @@ end
 
 params.waitframes = 1; 
 if params.practice || ~exist('old_params')
-    params.DetWg = 0.6;
-    params.DisWg = 0.6;
+    params.DetWg = 0.2;
+    params.DisWg = 0.2;
 else
     params.DetWg = old_params.params.DetWg(end);
     params.DisWg = old_params.params.DisWg(end);
@@ -70,6 +74,9 @@ params.time_to_conf = 2.5;
 %% Number of trials and blocks
 if params.practice
     params.trialsPerBlock = 4;
+    params.Nblocks = 2;
+elseif calibration
+    params.trialsPerBlock = 80;
     params.Nblocks = 2;
 else
     params.trialsPerBlock = 40;
