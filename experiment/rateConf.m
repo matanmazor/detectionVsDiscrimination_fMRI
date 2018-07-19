@@ -1,4 +1,8 @@
-function [rating]= rateConf(w,params)
+function [rating]= rateConf(w)
+
+global log
+global params
+global global_clock
 
 timer = tic();
 
@@ -19,6 +23,7 @@ while toc(timer)<params.time_to_conf-0.1
     Screen('Flip',w);
     [keyIsDown, seconds, keyCode ] = KbCheck;
     if keyIsDown
+        log.events = [log.events; find(keyCode,1) toc(global_clock)];
         if keyCode(KbName('ESCAPE'))
             break;
         end

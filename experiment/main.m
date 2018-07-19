@@ -2,7 +2,7 @@ clear all
 workspace
 version = '2018-05-14';
 addpath('..\..\..\2018\preRNG\Matlab')
-PsychDebugWindowConfiguration()
+% PsychDebugWindowConfiguration()
 
 %{
   An adaptation of Ariel Zylberberg's code, originally used for exp. 1 in
@@ -73,12 +73,13 @@ while num_five<excludeVolumes*slicesperVolume
     [keyIsDown,secs, keyCode] = KbCheck;
     if keyCode(params.scanner_signal)
         num_five = num_five+1;
+        WaitSecs(0.02);
     end
-    if keyCode(KbName('ESCAPE'))
-        Screen('CloseAll');
-        clear all
-        return
-    end
+if keyCode(KbName('ESCAPE'))
+    Screen('CloseAll');
+    clear all
+    return
+end
 end
 
 global_clock = tic();
@@ -112,13 +113,13 @@ for num_trial = 1:params.Nsets
         if num_trial==1
             remove_instruction_time=5;
         else
-            remove_instruction_time = params_onset(num_trial-1)+5;
+            remove_instruction_time = params.onsets(num_trial-1)+5;
         end
         
         while toc(global_clock)<remove_instruction_time
             [keyIsDown, seconds, keyCode ] = KbCheck;
             if keyIsDown || keyCode(params.scanner_signal)
-                log.events = [log.events; find(keyCode) toc(global_clock)];
+                log.events = [log.events; find(keyCode,1) toc(global_clock)];
                 if keyCode(KbName('ESCAPE'))
                     break;
                 end
@@ -163,7 +164,7 @@ for num_trial = 1:params.Nsets
     while toc(global_clock)<params.onsets(num_trial)-0.5
         [keyIsDown, seconds, keyCode ] = KbCheck;
         if keyIsDown || keyCode(params.scanner_signal)
-            log.events = [log.events; find(keyCode) toc(global_clock)];
+            log.events = [log.events; find(keyCode,1) toc(global_clock)];
             if keyCode(KbName('ESCAPE'))
                 break;
             end
@@ -175,7 +176,7 @@ for num_trial = 1:params.Nsets
     while toc(global_clock)<params.onsets(num_trial)
         [keyIsDown, seconds, keyCode ] = KbCheck;
         if keyIsDown || keyCode(params.scanner_signal)
-            log.events = [log.events; find(keyCode) toc(global_clock)];
+            log.events = [log.events; find(keyCode,1) toc(global_clock)];
             if keyCode(KbName('ESCAPE'))
                 break;
             end
@@ -199,7 +200,7 @@ for num_trial = 1:params.Nsets
     while (GetSecs - tini)<params.display_time+0.1
         [keyIsDown, seconds, keyCode ] = KbCheck;
         if keyIsDown || keyCode(params.scanner_signal)
-            log.events = [log.events; find(keyCode) toc(global_clock)];
+            log.events = [log.events; find(keyCode,1) toc(global_clock)];
             if keyCode(KbName('ESCAPE'))
                 break;
             end
@@ -217,7 +218,7 @@ for num_trial = 1:params.Nsets
             vbl=Screen('Flip', w);
             [keyIsDown, seconds, keyCode ] = KbCheck;
             if keyIsDown
-                log.events = [log.events; find(keyCode) toc(global_clock)];
+                log.events = [log.events; find(keyCode,1) toc(global_clock)];
                 if keyCode(KbName('ESCAPE'))
                     break;
                 end
@@ -239,7 +240,7 @@ for num_trial = 1:params.Nsets
             vbl=Screen('Flip', w);
             [keyIsDown, seconds, keyCode ] = KbCheck;
             if keyIsDown || keyCode(params.scanner_signal)
-                log.events = [log.events; find(keyCode) toc(global_clock)];
+                log.events = [log.events; find(keyCode,1) toc(global_clock)];
                 if keyCode(KbName('ESCAPE'))
                     break;
                 end

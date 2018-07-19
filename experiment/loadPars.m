@@ -45,8 +45,8 @@ end
 
 params.waitframes = 1; 
 if params.practice || ~exist('old_params')
-    params.DetWg = 0.2;
-    params.DisWg = 0.2;
+    params.DetWg = 0.1;
+    params.DisWg = 0.1;
 else
     params.DetWg = old_params.params.DetWg(end);
     params.DisWg = old_params.params.DisWg(end);
