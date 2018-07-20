@@ -141,7 +141,7 @@ elseif params.practice == 1
     params.vCoh = ones(params.Nsets,1);
     params.vTask = [0,0];
 else
-    params.run_duration = 9*60; %seconds;
+    params.run_duration = 9.5*60; %seconds;
     [params.vDirection, params.vWg, params.vTask, params.onsets] = ...
     get_trials_params(params);
 end

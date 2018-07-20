@@ -2,6 +2,7 @@ clear all
 workspace
 version = '2018-05-14';
 addpath('..\..\..\2018\preRNG\Matlab')
+
 % PsychDebugWindowConfiguration()
 
 %{
@@ -31,6 +32,9 @@ screens=Screen('Screens');
 screenNumber=max(screens);
 doublebuffer=1;
 
+KbQueueCreate;
+KbQueueStart;
+
 [w, rect] = Screen('OpenWindow', screenNumber, 0,[], 32, doublebuffer+1);
 
 %load parameters
@@ -58,18 +62,19 @@ log.events = [];
 
 
 %% WAIT FOR 5
-excludeVolumes = 5;
+excludeVolumes = 1;
 if params.multiband
     slicesperVolume = 36;
 else
     slicesperVolume = 48;
 end
 num_five = 0;
-Screen('DrawText',w,...
+
+while num_five<excludeVolumes*slicesperVolume
+    Screen('DrawText',w,...
     'Waiting for the scanner.',...
     20,120,[255 255 255])
-vbl=Screen('Flip', w);
-while num_five<excludeVolumes*slicesperVolume
+    vbl=Screen('Flip', w);
     [keyIsDown,secs, keyCode] = KbCheck;
     if keyCode(params.scanner_signal)
         num_five = num_five+1;
@@ -102,8 +107,8 @@ for num_trial = 1:params.Nsets
             Screen('DrawTexture', w, params.noTexture, [], params.positions{3-params.yes})
         else
             params.Wg = params.DisWg(end);
-            Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical})
-            Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical})
+            Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical},45)
+            Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},45)
         end
         DrawFormattedText(w, 'or','center','center');
         DrawFormattedText(w, '?',params.positions{2}(3)+100,'center');
@@ -185,7 +190,7 @@ for num_trial = 1:params.Nsets
     
     %MM: present stimulus
     tini = GetSecs;
-    Screen('DrawTextures',w,target);
+    Screen('DrawTextures',w,target, [], [], 45);
     vbl=Screen('Flip', w);
     
     %write to log
@@ -234,9 +239,9 @@ for num_trial = 1:params.Nsets
     else %discrimination
         while (GetSecs - tini)<params.display_time+params.time_to_respond
             Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical},...
-                [],[],0.5+0.5*(response(2)==1))
+                45,[],0.5+0.5*(response(2)==1))
             Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},...
-                [],[],0.5+0.5*(response(2)==3))
+                45,[],0.5+0.5*(response(2)==3))
             vbl=Screen('Flip', w);
             [keyIsDown, seconds, keyCode ] = KbCheck;
             if keyIsDown || keyCode(params.scanner_signal)
