@@ -74,13 +74,13 @@ while num_five<excludeVolumes*slicesperVolume
         'Waiting for the scanner.',...
         20,120,[255 255 255])
     vbl=Screen('Flip', w);
-    [ pressed, firstPress]= KbQueueCheck;
+    [ ~, firstPress]= KbQueueCheck;
     if firstPress(params.scanner_signal)
         num_five = num_five+1;
     end
     if firstPress(KbName('ESCAPE'))
         Screen('CloseAll');
-        clear all
+        clear;
         return
     end
 end
@@ -120,13 +120,7 @@ for num_trial = 1:params.Nsets
         end
         
         while toc(global_clock)<remove_instruction_time
-            [ pressed, firstPress]= KbQueueCheck;
-            if pressed
-                log.events = [log.events; find(firstPress,1) toc(global_clock)];
-                if firstPress(KbName('ESCAPE'))
-                    break;
-                end
-            end
+            keysPressed = queryInput();
         end
     end
     
@@ -165,26 +159,14 @@ for num_trial = 1:params.Nsets
     vbl=Screen('Flip', w);%initial flip
     
     while toc(global_clock)<params.onsets(num_trial)-0.5
-        [ pressed, firstPress]= KbQueueCheck;
-        if pressed
-            log.events = [log.events; find(firstPress,1) toc(global_clock)];
-            if firstPress(KbName('ESCAPE'))
-                break;
-            end
-        end
+        keysPressed = queryInput();
     end
     
     DrawFormattedText(w, '+','center','center');
     vbl=Screen('Flip', w);
     
     while toc(global_clock)<params.onsets(num_trial)
-        [ pressed, firstPress]= KbQueueCheck;
-        if pressed
-            log.events = [log.events; find(firstPress,1) toc(global_clock)];
-            if firstPress(KbName('ESCAPE'))
-                break;
-            end
-        end
+        keysPressed = queryInput();
     end
     
     %MM: present stimulus
@@ -196,19 +178,13 @@ for num_trial = 1:params.Nsets
     log.events = [log.events; 0 toc(global_clock)];
     
     while (GetSecs - tini)<params.display_time
-        continue
+        keysPressed = queryInput();
     end
     
     DrawFormattedText(w, '+','center','center');
     vbl=Screen('Flip', w);
     while (GetSecs - tini)<params.display_time+0.1
-        [ pressed, firstPress]= KbQueueCheck;
-        if pressed
-            log.events = [log.events; find(firstPress,1) toc(global_clock)];
-            if firstPress(KbName('ESCAPE'))
-                break;
-            end
-        end
+        keysPressed = queryInput();
     end
     
     %% Wait for response
@@ -220,20 +196,13 @@ for num_trial = 1:params.Nsets
             Screen('DrawTexture', w, params.noTexture, [], params.positions{3-params.yes},...
                 [],[], 0.5+0.5*(response(2)==0))
             vbl=Screen('Flip', w);
-            [ pressed, firstPress]= KbQueueCheck;
-            if pressed
-                log.events = [log.events; find(firstPress,1) toc(global_clock)];
-                if firstPress(KbName('ESCAPE'))
-                    break;
-                end
-                if firstPress(KbName(params.keys{params.yes}))
-                    response = [GetSecs-tini 1];
-                elseif firstPress(KbName(params.keys{3-params.yes}))
-                    response = [GetSecs-tini 0];
-                end
+            keysPressed = queryInput();
+            if keysPressed(KbName(params.keys{params.yes}))
+                response = [GetSecs-tini 1];
+            elseif keysPressed(KbName(params.keys{3-params.yes}))
+                response = [GetSecs-tini 0];
             end
         end
-        
         
     else %discrimination
         while (GetSecs - tini)<params.display_time+params.time_to_respond
@@ -242,28 +211,22 @@ for num_trial = 1:params.Nsets
             Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},...
                 45,[],0.5+0.5*(response(2)==3))
             vbl=Screen('Flip', w);
-          [ pressed, firstPress]= KbQueueCheck;
-            if pressed
-                log.events = [log.events; find(firstPress,1) toc(global_clock)];
-                if firstPress(KbName('ESCAPE'))
-                    break;
-                end
-                if firstPress(KbName(params.keys{params.vertical}))
-                    response = [GetSecs-tini 1];
-                elseif firstPress(KbName(params.keys{3-params.vertical}))
-                    response = [GetSecs-tini 3];
-                end
-            end  
+            keysPressed = queryInput();
+            if keysPressed(KbName(params.keys{params.vertical}))
+                response = [GetSecs-tini 1];
+            elseif keysPressed(KbName(params.keys{3-params.vertical}))
+                response = [GetSecs-tini 3];
+            end
         end
     end
     log.resp(num_trial,:) = response;
     
     log.stimTime{num_trial} = vbl;
     
-if firstPress(KbName('ESCAPE'))
-   Screen('CloseAll');
-end
-
+    if firstPress(KbName('ESCAPE'))
+        Screen('CloseAll');
+    end
+    
     % MM: check if the response was accurate or not
     if detection
         if log.resp(num_trial,2)== sign(params.vWg(num_trial))
