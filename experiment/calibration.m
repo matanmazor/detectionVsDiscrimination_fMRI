@@ -2,6 +2,7 @@ clear all
 workspace
 version = '2018-05-14';
 addpath('..\..\..\2018\preRNG\Matlab')
+
 % PsychDebugWindowConfiguration()
 
 %{
@@ -13,12 +14,15 @@ addpath('..\..\..\2018\preRNG\Matlab')
   Adapted by Matan Mazor, 2018
 %}
 
-%% Psychtoolbox
+global log
+global params
+global global_clock
 
-prompt = {'Name: ', 'Practice '};
+
+prompt = {'Name: ', 'Practice ', 'Multiband'};
 dlg_title = 'Filename'; % title of the input dialog box
 num_lines = 1; % number of input lines
-default = {'Xtest','0'}; % default filename
+default = {'Xtest','0','0'}; % default filename
 savestr = inputdlg(prompt,dlg_title,num_lines,default);
 
 %set preferences and open screen
@@ -26,6 +30,9 @@ Screen('Preference','SkipSyncTests', 1)
 screens=Screen('Screens');
 screenNumber=max(screens);
 doublebuffer=1;
+
+KbQueueCreate;
+KbQueueStart;
 
 [w, rect] = Screen('OpenWindow', screenNumber, 0,[], 32, doublebuffer+1);
 
@@ -50,6 +57,34 @@ log.detection = nan(params.Nsets,1);
 log.Wg = nan(params.Nsets,1);
 log.correct = nan(params.Nsets,1);
 log.estimates = [];
+log.events = [];
+
+
+%% WAIT FOR 5
+excludeVolumes = 1;
+if params.multiband
+    slicesperVolume = 1;
+else
+    slicesperVolume = 1;
+end
+num_five = 0;
+
+while num_five<excludeVolumes*slicesperVolume
+    Screen('DrawText',w,...
+        'Waiting for the scanner.',...
+        20,120,[255 255 255])
+    vbl=Screen('Flip', w);
+    [ ~, firstPress]= KbQueueCheck;
+    if firstPress(params.scanner_signal)
+        num_five = num_five+1;
+    end
+    if firstPress(KbName('ESCAPE'))
+        Screen('CloseAll');
+        clear;
+        return
+    end
+end
+
 global_clock = tic();
 
 %% Strart the trials
@@ -70,31 +105,34 @@ for num_trial = 1:params.Nsets
             Screen('DrawTexture', w, params.noTexture, [], params.positions{3-params.yes})
         else
             params.Wg = params.DisWg(end);
-            Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical})
-            Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical})
+            Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical},45)
+            Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},45)
         end
         DrawFormattedText(w, 'or','center','center');
         DrawFormattedText(w, '?',params.positions{2}(3)+100,'center');
         
         vbl=Screen('Flip', w);
-        pause(5);
+        
+        instruction_clock = tic;
+        while toc(instruction_clock)<5
+            keysPressed = queryInput();
+        end
     end
     
     % monitor and update coherence levels
-    % if you're in the first two blocks of the first session, reduce
-    % coherence every 10 trials for the first 40 trials if performance was
-    % above chance
-    if mod(num_trial,2)==0 && num_trial>2&&...
-            sum(log.correct(num_trial-2:num_trial-1))==2
-        params.Wg = params.Wg-0.01;
-    elseif mod(num_trial,2)==0 && num_trial>2&&...
-            sum(log.correct(num_trial-2:num_trial-1))==0
-        params.Wg = params.Wg+0.01;
-    end
-    if detection
-        params.DetWg = [params.DetWg; params.Wg];
-    else
-        params.DisWg = [params.DisWg; params.Wg];
+
+    if mod(num_trial, params.trialsPerBlock)>2 && mod(num_trial, 2)==1
+        current_performance = mean(log.correct(num_trial-2:num_trial-1))
+        if current_performance==1
+            params.Wg = params.Wg-0.005;
+        elseif current_performance==0
+            params.Wg = params.Wg+0.005;
+        end
+        if detection
+            params.DetWg = [params.DetWg; params.Wg];
+        else
+            params.DisWg = [params.DisWg; params.Wg];
+        end
     end
     
     %MM: generate the stimulus.
@@ -113,86 +151,73 @@ for num_trial = 1:params.Nsets
         params.fixation_diameter_px, [255 255 255]*0.4, params.center,1);
     vbl=Screen('Flip', w);%initial flip
     
-    tini = GetSecs;
-    while (GetSecs - tini)<1
-        [keyIsDown, seconds, keyCode ] = KbCheck;
-        if keyCode(KbName('ESCAPE'))
-            break;
-        end
+    trial_clock = tic;
+    while toc(trial_clock)<1
+        keysPressed = queryInput();
     end
+    
     DrawFormattedText(w, '+','center','center');
     vbl=Screen('Flip', w);
-    while (GetSecs - tini)<1.5
-        [keyIsDown, seconds, keyCode ] = KbCheck;
-        if keyCode(KbName('ESCAPE'))
-            break;
-        end
+    
+    while toc(trial_clock)<1.5
+        keysPressed = queryInput();
     end
+    
     %MM: present stimulus
-    Screen('DrawTextures',w,target);
+    Screen('DrawTextures',w,target, [], [], 45);
     vbl=Screen('Flip', w);
     
-    while (GetSecs - tini)<params.display_time+1.5
-        continue
+    %write to log
+    log.events = [log.events; 0 toc(global_clock)];
+    
+    while toc(trial_clock)<1.1+params.display_time
+        keysPressed = queryInput();
     end
     
     DrawFormattedText(w, '+','center','center');
     vbl=Screen('Flip', w);
-    while (GetSecs - tini)<params.display_time+0.1+1.5
-        [keyIsDown, seconds, keyCode ] = KbCheck;
-        if keyCode(KbName('ESCAPE'))
-            break;
-        end
+    while toc(trial_clock) <params.display_time+1.2
+        keysPressed = queryInput();
     end
     
     %% Wait for response
     response = [nan nan];
     if detection
-        while (GetSecs - tini)<params.display_time+params.time_to_respond+1.5
+        while toc(trial_clock) < params.display_time+params.time_to_respond+1.2
             Screen('DrawTexture', w, params.yesTexture, [], params.positions{params.yes}, ...
                 [],[], 0.5+0.5*(response(2)==1))
             Screen('DrawTexture', w, params.noTexture, [], params.positions{3-params.yes},...
                 [],[], 0.5+0.5*(response(2)==0))
             vbl=Screen('Flip', w);
-            [keyIsDown, seconds, keyCode ] = KbCheck;
-            if keyIsDown
-                if keyCode(KbName('ESCAPE'))
-                    break;
-                end
-                if keyCode(KbName(params.keys{params.yes}))
-                    response = [GetSecs-tini 1];
-                elseif keyCode(KbName(params.keys{3-params.yes}))
-                    response = [GetSecs-tini 0];
-                end
+            keysPressed = queryInput();
+            if keysPressed(KbName(params.keys{params.yes}))
+                response = [toc(trial_clock) 1];
+            elseif keysPressed(KbName(params.keys{3-params.yes}))
+                response = [toc(trial_clock) 0];
             end
         end
         
-        
     else %discrimination
-        while (GetSecs - tini)<params.display_time+params.time_to_respond+1.5
+        while toc(trial_clock)<params.display_time+params.time_to_respond+1.2
             Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical},...
-                [],[],0.5+0.5*(response(2)==1))
+                45,[],0.5+0.5*(response(2)==1))
             Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},...
-                [],[],0.5+0.5*(response(2)==3))
+                45,[],0.5+0.5*(response(2)==3))
             vbl=Screen('Flip', w);
-            [keyIsDown, seconds, keyCode ] = KbCheck;
-            if keyIsDown
-                if keyCode(KbName('ESCAPE'))
-                    break;
-                end
-                if keyCode(KbName(params.keys{params.vertical}))
-                    response = [GetSecs-tini 1];
-                elseif keyCode(KbName(params.keys{3-params.vertical}))
-                    response = [GetSecs-tini 3];
-                end
+            keysPressed = queryInput();
+            if keysPressed(KbName(params.keys{params.vertical}))
+                response = [toc(trial_clock) 1];
+            elseif keysPressed(KbName(params.keys{3-params.vertical}))
+                response = [toc(trial_clock) 3];
             end
         end
     end
     log.resp(num_trial,:) = response;
     
     log.stimTime{num_trial} = vbl;
-    if keyCode(KbName('ESCAPE'))
-        break;
+    
+    if firstPress(KbName('ESCAPE'))
+        Screen('CloseAll');
     end
     
     % MM: check if the response was accurate or not
@@ -210,7 +235,7 @@ for num_trial = 1:params.Nsets
         end
     end
     %MM: end of decision phase
-
+    
 end
 
 %% MM: write to log
