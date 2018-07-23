@@ -18,7 +18,6 @@ global log
 global params
 global global_clock
 
-%% Psychtoolbox
 
 prompt = {'Name: ', 'Practice ', 'Multiband'};
 dlg_title = 'Filename'; % title of the input dialog box
@@ -72,19 +71,18 @@ num_five = 0;
 
 while num_five<excludeVolumes*slicesperVolume
     Screen('DrawText',w,...
-    'Waiting for the scanner.',...
-    20,120,[255 255 255])
+        'Waiting for the scanner.',...
+        20,120,[255 255 255])
     vbl=Screen('Flip', w);
-    [keyIsDown,secs, keyCode] = KbCheck;
-    if keyCode(params.scanner_signal)
+    [ pressed, firstPress]= KbQueueCheck;
+    if firstPress(params.scanner_signal)
         num_five = num_five+1;
-        WaitSecs(0.02);
     end
-if keyCode(KbName('ESCAPE'))
-    Screen('CloseAll');
-    clear all
-    return
-end
+    if firstPress(KbName('ESCAPE'))
+        Screen('CloseAll');
+        clear all
+        return
+    end
 end
 
 global_clock = tic();
@@ -122,10 +120,10 @@ for num_trial = 1:params.Nsets
         end
         
         while toc(global_clock)<remove_instruction_time
-            [keyIsDown, seconds, keyCode ] = KbCheck;
-            if keyIsDown || keyCode(params.scanner_signal)
-                log.events = [log.events; find(keyCode,1) toc(global_clock)];
-                if keyCode(KbName('ESCAPE'))
+            [ pressed, firstPress]= KbQueueCheck;
+            if pressed
+                log.events = [log.events; find(firstPress,1) toc(global_clock)];
+                if firstPress(KbName('ESCAPE'))
                     break;
                 end
             end
@@ -167,22 +165,23 @@ for num_trial = 1:params.Nsets
     vbl=Screen('Flip', w);%initial flip
     
     while toc(global_clock)<params.onsets(num_trial)-0.5
-        [keyIsDown, seconds, keyCode ] = KbCheck;
-        if keyIsDown || keyCode(params.scanner_signal)
-            log.events = [log.events; find(keyCode,1) toc(global_clock)];
-            if keyCode(KbName('ESCAPE'))
+        [ pressed, firstPress]= KbQueueCheck;
+        if pressed
+            log.events = [log.events; find(firstPress,1) toc(global_clock)];
+            if firstPress(KbName('ESCAPE'))
                 break;
             end
         end
     end
+    
     DrawFormattedText(w, '+','center','center');
     vbl=Screen('Flip', w);
     
     while toc(global_clock)<params.onsets(num_trial)
-        [keyIsDown, seconds, keyCode ] = KbCheck;
-        if keyIsDown || keyCode(params.scanner_signal)
-            log.events = [log.events; find(keyCode,1) toc(global_clock)];
-            if keyCode(KbName('ESCAPE'))
+        [ pressed, firstPress]= KbQueueCheck;
+        if pressed
+            log.events = [log.events; find(firstPress,1) toc(global_clock)];
+            if firstPress(KbName('ESCAPE'))
                 break;
             end
         end
@@ -203,10 +202,10 @@ for num_trial = 1:params.Nsets
     DrawFormattedText(w, '+','center','center');
     vbl=Screen('Flip', w);
     while (GetSecs - tini)<params.display_time+0.1
-        [keyIsDown, seconds, keyCode ] = KbCheck;
-        if keyIsDown || keyCode(params.scanner_signal)
-            log.events = [log.events; find(keyCode,1) toc(global_clock)];
-            if keyCode(KbName('ESCAPE'))
+        [ pressed, firstPress]= KbQueueCheck;
+        if pressed
+            log.events = [log.events; find(firstPress,1) toc(global_clock)];
+            if firstPress(KbName('ESCAPE'))
                 break;
             end
         end
@@ -221,15 +220,15 @@ for num_trial = 1:params.Nsets
             Screen('DrawTexture', w, params.noTexture, [], params.positions{3-params.yes},...
                 [],[], 0.5+0.5*(response(2)==0))
             vbl=Screen('Flip', w);
-            [keyIsDown, seconds, keyCode ] = KbCheck;
-            if keyIsDown
-                log.events = [log.events; find(keyCode,1) toc(global_clock)];
-                if keyCode(KbName('ESCAPE'))
+            [ pressed, firstPress]= KbQueueCheck;
+            if pressed
+                log.events = [log.events; find(firstPress,1) toc(global_clock)];
+                if firstPress(KbName('ESCAPE'))
                     break;
                 end
-                if keyCode(KbName(params.keys{params.yes}))
+                if firstPress(KbName(params.keys{params.yes}))
                     response = [GetSecs-tini 1];
-                elseif keyCode(KbName(params.keys{3-params.yes}))
+                elseif firstPress(KbName(params.keys{3-params.yes}))
                     response = [GetSecs-tini 0];
                 end
             end
@@ -243,27 +242,28 @@ for num_trial = 1:params.Nsets
             Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},...
                 45,[],0.5+0.5*(response(2)==3))
             vbl=Screen('Flip', w);
-            [keyIsDown, seconds, keyCode ] = KbCheck;
-            if keyIsDown || keyCode(params.scanner_signal)
-                log.events = [log.events; find(keyCode,1) toc(global_clock)];
-                if keyCode(KbName('ESCAPE'))
+          [ pressed, firstPress]= KbQueueCheck;
+            if pressed
+                log.events = [log.events; find(firstPress,1) toc(global_clock)];
+                if firstPress(KbName('ESCAPE'))
                     break;
                 end
-                if keyCode(KbName(params.keys{params.vertical}))
+                if firstPress(KbName(params.keys{params.vertical}))
                     response = [GetSecs-tini 1];
-                elseif keyCode(KbName(params.keys{3-params.vertical}))
+                elseif firstPress(KbName(params.keys{3-params.vertical}))
                     response = [GetSecs-tini 3];
                 end
-            end
+            end  
         end
     end
     log.resp(num_trial,:) = response;
     
     log.stimTime{num_trial} = vbl;
-    if keyCode(KbName('ESCAPE'))
-        break;
-    end
     
+if firstPress(KbName('ESCAPE'))
+   Screen('CloseAll');
+end
+
     % MM: check if the response was accurate or not
     if detection
         if log.resp(num_trial,2)== sign(params.vWg(num_trial))

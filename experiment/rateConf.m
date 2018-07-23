@@ -21,18 +21,16 @@ while toc(timer)<params.time_to_conf
     Screen('FrameOval',w,[255,255,255]/2,[params.center params.center]+circle_size*sqrt(1/6),4);
 
     Screen('Flip',w);
-    [keyIsDown, seconds, keyCode ] = KbCheck;
-    if keyIsDown
-        log.events = [log.events; find(keyCode,1) toc(global_clock)];
-        if keyCode(KbName('ESCAPE'))
+    [ pressed, firstPress]= KbQueueCheck;
+    if pressed
+        log.events = [log.events; find(firstPress,1) toc(global_clock)];
+        if firstPress(KbName('ESCAPE'))
             break;
         end
-        if keyCode(KbName('3#'))
+        if firstPress(KbName('3#'))
             rating=max(1,rating-1);
-            pause(0.1)
-        elseif keyCode(KbName('4$'));
+        elseif firstPress(KbName('4$'));
             rating=min(6,rating+1)
-            pause(0.1)
         end
     end
 end
@@ -50,10 +48,10 @@ while toc(timer)<params.time_to_conf+0.2
     Screen('FrameOval',w,[255,255,255],[params.center params.center]+circle_size*sqrt(rating/6),4);
 
     Screen('Flip',w);
-    [keyIsDown, seconds, keyCode ] = KbCheck;
-    if keyIsDown
-        log.events = [log.events; find(keyCode,1) toc(global_clock)];
-        if keyCode(KbName('ESCAPE'))
+    [ pressed, firstPress]= KbQueueCheck;
+    if pressed
+        log.events = [log.events; find(firstPress,1) toc(global_clock)];
+        if firstPress(KbName('ESCAPE'))
             break;
         end
     end
