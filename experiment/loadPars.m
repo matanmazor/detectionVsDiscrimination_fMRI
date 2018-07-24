@@ -5,17 +5,16 @@ params.subj = savestr{1};
 params.practice = str2double(savestr{2});
 params.multiband = str2double(savestr{3});
 
+    
 load(fullfile('data','subjects.mat'));
 if ismember(params.subj, subjects.keys)
-    %when this equals 1, the 'vertical' response will be on the right.
     response_mappings = subjects(params.subj);
-    params.vertical = response_mappings(1); 
-    %when this equals 1, the 'Yes' response will be on the right.
-    params.yes = response_mappings(2); 
+    %when this equals 1, bigger circles represent higher confidence 
+    params.conf_mapping = response_mappings(1);
 else
     error('Participant is not in subjects list');
 end
-
+    
 %MM: A while-loop to start next session in line.
 if ~params.practice && ~calibration
     num_session=0;
@@ -36,6 +35,10 @@ else
     num_session=0;
     params.filename = strjoin({params.subj,'calibration.mat'},'_');
 end
+% Tha mapping between Gabor orientations and right/left alternates between
+% runs. When this equals 1, the 'Yes' response will be on the right.
+params.yes = mod(params.num_session,2)+1;
+
 %% randomize
 if ~params.practice
     subject_num = str2num(params.subj(1:2));
@@ -44,9 +47,13 @@ if ~params.practice
 end
 
 params.waitframes = 1; 
-if params.practice || ~exist('old_params')
+if params.practice || calibration
     params.DetWg = 0.1;
     params.DisWg = 0.1;
+elseif ~exist('old_params') 
+    old_params = load(fullfile('data',strjoin({params.subj,'calibration.mat'},'_')));
+    params.DetWg = mean(old_params.params.DetWg(end-20:end));
+    params.DisWg = mean(old_params.params.DisWg(end-20:end));
 else
     params.DetWg = old_params.params.DetWg(end);
     params.DisWg = old_params.params.DisWg(end);
@@ -73,8 +80,8 @@ params.time_to_conf = 2.5;
 
 %% Number of trials and blocks
 if params.practice
-    params.trialsPerBlock = 4;
-    params.Nblocks = 2;
+    params.trialsPerBlock = 8;
+    params.Nblocks = 1;
 elseif calibration
     params.trialsPerBlock = 80;
     params.Nblocks = 2;
@@ -134,12 +141,14 @@ params.keys = {'1!','2@'};
 %MM: direction and coherence for every trial
 if params.practice == 2
     params.vDirection = ones(params.Nsets,1)+ 2*binornd(1,0.5,params.Nsets,1);
-    params.vCoh = binornd(1,0.5,params.Nsets,1);
+    params.vWg = binornd(1,0.5,params.Nsets,1);
     params.vTask = [1, 1];
+    params.onsets = cumsum(6*ones(params.Nsets));
 elseif params.practice == 1
     params.vDirection = ones(params.Nsets,1)+ 2*binornd(1,0.5,params.Nsets,1);
-    params.vCoh = ones(params.Nsets,1);
+    params.vWg = ones(params.Nsets,1);
     params.vTask = [0,0];
+    params.onsets = cumsum(6*ones(params.Nsets));
 else
     params.run_duration = 9.5*60; %seconds;
     [params.vDirection, params.vWg, params.vTask, params.onsets] = ...

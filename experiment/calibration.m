@@ -61,30 +61,33 @@ log.events = [];
 
 
 %% WAIT FOR 5
-excludeVolumes = 1;
-if params.multiband
-    slicesperVolume = 1;
-else
-    slicesperVolume = 1;
-end
-num_five = 0;
+% Wait for the 6th volume to start the experiment. 
 
+excludeVolumes = 5;
+if params.multiband
+    slicesperVolume = 36;
+else
+    slicesperVolume = 48;
+end
+
+%initialize
+num_five = 0;
 while num_five<excludeVolumes*slicesperVolume
-    Screen('DrawText',w,...
-        'Waiting for the scanner.',...
-        20,120,[255 255 255])
+    Screen('DrawText',w,'Waiting for the scanner.',20,120,[255 255 255])
     vbl=Screen('Flip', w);
     [ ~, firstPress]= KbQueueCheck;
     if firstPress(params.scanner_signal)
         num_five = num_five+1;
-    end
-    if firstPress(KbName('ESCAPE'))
+    elseif firstPress(KbName('6^'))
+        num_five = inf;
+    elseif firstPress(KbName('ESCAPE'))
         Screen('CloseAll');
         clear;
         return
     end
 end
 
+% All timings are relative to the onset of the 6th volume.
 global_clock = tic();
 
 %% Strart the trials
@@ -105,8 +108,8 @@ for num_trial = 1:params.Nsets
             Screen('DrawTexture', w, params.noTexture, [], params.positions{3-params.yes})
         else
             params.Wg = params.DisWg(end);
-            Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical},45)
-            Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},45)
+            Screen('DrawTexture', w, params.vertTexture, [], params.positions{2},45)
+            Screen('DrawTexture', w, params.horiTexture, [], params.positions{1},45)
         end
         DrawFormattedText(w, 'or','center','center');
         DrawFormattedText(w, '?',params.positions{2}(3)+100,'center');
@@ -199,15 +202,15 @@ for num_trial = 1:params.Nsets
         
     else %discrimination
         while toc(trial_clock)<params.display_time+params.time_to_respond+1.2
-            Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical},...
+            Screen('DrawTexture', w, params.vertTexture, [], params.positions{2},...
                 45,[],0.5+0.5*(response(2)==1))
-            Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},...
+            Screen('DrawTexture', w, params.horiTexture, [], params.positions{1},...
                 45,[],0.5+0.5*(response(2)==3))
             vbl=Screen('Flip', w);
             keysPressed = queryInput();
-            if keysPressed(KbName(params.keys{params.vertical}))
+            if keysPressed(KbName(params.keys{2}))
                 response = [toc(trial_clock) 1];
-            elseif keysPressed(KbName(params.keys{3-params.vertical}))
+            elseif keysPressed(KbName(params.keys{1}))
                 response = [toc(trial_clock) 3];
             end
         end
