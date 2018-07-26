@@ -38,6 +38,7 @@ end
 % Tha mapping between Gabor orientations and right/left alternates between
 % runs. When this equals 1, the 'Yes' response will be on the right.
 params.yes = mod(params.num_session,2)+1;
+params.vertical = mod(params.num_session+1,2)+1;
 
 %% randomize
 if ~params.practice
@@ -136,7 +137,7 @@ params.positions = {[params.center(1)-250, params.center(2)-50,...
              [params.center(1)+150, params.center(2)-50,...
                             params.center(1)+250, params.center(2)+50]};
 
-params.keys = {'1!','2@'};
+params.keys = {'2@','3#'};
 
 %MM: direction and coherence for every trial
 if params.practice == 2

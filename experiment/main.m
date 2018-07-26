@@ -106,7 +106,7 @@ for num_trial = 1:params.Nsets
         
         %1. Save data to file
         if ~params.practice
-            save(fullfile('data', params.filename),'params','log');
+            save(fullfile('data', ['temp_',params.filename]),'params','log');
         end
         
         %2. Set task to detection or discrimination
@@ -119,8 +119,8 @@ for num_trial = 1:params.Nsets
             Screen('DrawTexture', w, params.noTexture, [], params.positions{3-params.yes})
         else
             params.Wg = params.DisWg(end);
-            Screen('DrawTexture', w, params.vertTexture, [], params.positions{2},45)
-            Screen('DrawTexture', w, params.horiTexture, [], params.positions{1},45)
+            Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical},45)
+            Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},45)
         end
         
         %4. Present instructions on the screen.
@@ -223,15 +223,15 @@ for num_trial = 1:params.Nsets
         
     else %discrimination
         while (GetSecs - tini)<params.display_time+params.time_to_respond
-            Screen('DrawTexture', w, params.vertTexture, [], params.positions{2},...
+            Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical},...
                 45,[],0.5+0.5*(response(2)==1))
-            Screen('DrawTexture', w, params.horiTexture, [], params.positions{1},...
+            Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},...
                 45,[],0.5+0.5*(response(2)==3))
             vbl=Screen('Flip', w);
             keysPressed = queryInput();
-            if keysPressed(KbName(params.keys{2}))
+            if keysPressed(KbName(params.keys{params.vertical}))
                 response = [GetSecs-tini 1];
-            elseif keysPressed(KbName(params.keys{1}))
+            elseif keysPressed(KbName(params.keys{3-params.vertical}))
                 response = [GetSecs-tini 3];
             end
         end
@@ -267,11 +267,17 @@ end
 
 %% MM: write to log
 
-if ~params.practice    
+if ~params.practice  
+    answer = questdlg('Should this run be regarded as completed?');
+    if strcmp(answer,'No')
+        params.filename = strcat('ignore_',params.filename); 
+    end
     log.date = date;
-    log.filename = params.filename;
     log.version = version;
     save(fullfile('data', params.filename),'params','log');
+    if exist(fullfile('data', ['temp_',params.filename]), 'file')==2
+            delete(fullfile('data', ['temp_',params.filename]));
+    end
 end
 
 %% close
