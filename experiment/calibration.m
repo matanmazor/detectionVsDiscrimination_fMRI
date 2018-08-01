@@ -3,16 +3,8 @@ workspace
 version = '2018-05-14';
 addpath('..\..\..\2018\preRNG\Matlab')
 
-% PsychDebugWindowConfiguration()
+%PsychDebugWindowConfiguration()
 
-%{
-  An adaptation of Ariel Zylberberg's code, originally used for exp. 1 in
-    Zylberberg, A., Bartfeld, P., & Signman, M. (2012).
-    The construction of confidence in percpetual decision.
-    Frontiers in integrative neuroscience,6, 79.
-
-  Adapted by Matan Mazor, 2018
-%}
 
 global log
 global params
@@ -61,18 +53,11 @@ log.events = [];
 
 
 %% WAIT FOR 5
-% Wait for the 6th volume to start the experiment. 
+% Wait for the 6th volume to start the experiment.
 
-excludeVolumes = 5;
-if params.multiband
-    slicesperVolume = 36;
-else
-    slicesperVolume = 48;
-end
-
-%initialize
 num_five = 0;
-while num_five<excludeVolumes*slicesperVolume
+
+while num_five<1
     Screen('DrawText',w,'Waiting for the scanner.',20,120,[255 255 255])
     vbl=Screen('Flip', w);
     [ ~, firstPress]= KbQueueCheck;
@@ -87,11 +72,24 @@ while num_five<excludeVolumes*slicesperVolume
     end
 end
 
+
+%initialize
+
 % All timings are relative to the onset of the 6th volume.
 global_clock = tic();
 
+
+correct_count = 0; %for staircasing
+
 %% Strart the trials
 for num_trial = 1:params.Nsets
+    
+    %% for staircasing
+    if mod(num_trial,round(params.trialsPerBlock))<20
+        step_size = 0.01;
+    else
+        step_size = 0.002;
+    end
     
     if mod(num_trial,round(params.trialsPerBlock))==1
         
@@ -122,22 +120,6 @@ for num_trial = 1:params.Nsets
         end
     end
     
-    % monitor and update coherence levels
-
-    if mod(num_trial, params.trialsPerBlock)>2 && mod(num_trial, 2)==1
-        current_performance = mean(log.correct(num_trial-2:num_trial-1))
-        if current_performance==1
-            params.Wg = params.Wg-0.005;
-        elseif current_performance==0
-            params.Wg = params.Wg+0.005;
-        end
-        if detection
-            params.DetWg = [params.DetWg; params.Wg];
-        else
-            params.DisWg = [params.DisWg; params.Wg];
-        end
-    end
-    
     %MM: generate the stimulus.
     target_xy = generate_stim(params, num_trial);
     target = Screen('MakeTexture',w, target_xy);
@@ -147,6 +129,8 @@ for num_trial = 1:params.Nsets
     log.direction(num_trial) = params.vDirection(num_trial);
     log.xymatrix{num_trial} = target_xy;
     log.detection(num_trial) = detection;
+    
+    response = [nan nan];
     
     % MM: fixation
     
@@ -159,32 +143,43 @@ for num_trial = 1:params.Nsets
         keysPressed = queryInput();
     end
     
-    DrawFormattedText(w, '+','center','center');
-    vbl=Screen('Flip', w);
-    
     while toc(trial_clock)<1.5
+        DrawFormattedText(w, '+','center','center');
+        vbl=Screen('Flip', w);
         keysPressed = queryInput();
     end
     
     %MM: present stimulus
-    Screen('DrawTextures',w,target, [], [], 45);
-    vbl=Screen('Flip', w);
     
     %write to log
     log.events = [log.events; 0 toc(global_clock)];
     
-    while toc(trial_clock)<1.1+params.display_time
-        keysPressed = queryInput();
+    while toc(trial_clock)<1.5+params.display_time
+        Screen('DrawTextures',w,target, [], [], 45);
+        vbl=Screen('Flip', w);
     end
     
-    DrawFormattedText(w, '+','center','center');
-    vbl=Screen('Flip', w);
-    while toc(trial_clock) <params.display_time+1.2
+    
+    while toc(trial_clock) <params.display_time+1.7
+        DrawFormattedText(w, '+','center','center');
+        vbl=Screen('Flip', w);
         keysPressed = queryInput();
+        if detection
+            if keysPressed(KbName(params.keys{params.yes}))
+                response = [toc(trial_clock) 1];
+            elseif keysPressed(KbName(params.keys{3-params.yes}))
+                response = [toc(trial_clock) 0];
+            end
+        else
+            if keysPressed(KbName(params.keys{params.vertical}))
+                response = [toc(trial_clock) 1];
+            elseif keysPressed(KbName(params.keys{3-params.vertical}))
+                response = [toc(trial_clock) 0];
+            end
+        end
     end
     
     %% Wait for response
-    response = [nan nan];
     if detection
         while toc(trial_clock) < params.display_time+params.time_to_respond+1.2
             Screen('DrawTexture', w, params.yesTexture, [], params.positions{params.yes}, ...
@@ -219,9 +214,6 @@ for num_trial = 1:params.Nsets
     
     log.stimTime{num_trial} = vbl;
     
-    if firstPress(KbName('ESCAPE'))
-        Screen('CloseAll');
-    end
     
     % MM: check if the response was accurate or not
     if detection
@@ -239,7 +231,25 @@ for num_trial = 1:params.Nsets
     end
     %MM: end of decision phase
     
+    % monitor and update coherence levels
+    if mod(num_trial, params.trialsPerBlock)>5 %don't staircase for the first 5 trials
+        if ~log.correct(num_trial)
+            params.Wg = params.Wg+step_size;
+            correct_count=0;
+        elseif correct_count==1 && log.correct(num_trial)
+            params.Wg = params.Wg-step_size;
+            correct_count=0;
+        else
+            correct_count = correct_count+1;
+        end
+        if detection
+            params.DetWg = [params.DetWg; params.Wg];
+        else
+            params.DisWg = [params.DisWg; params.Wg];
+        end
+    end
 end
+
 
 %% MM: write to log
 %MM: experimento is the log variable that includes all experiment

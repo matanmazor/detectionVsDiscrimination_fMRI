@@ -53,8 +53,8 @@ if params.practice || calibration
     params.DisWg = 0.1;
 elseif ~exist('old_params') 
     old_params = load(fullfile('data',strjoin({params.subj,'calibration.mat'},'_')));
-    params.DetWg = mean(old_params.params.DetWg(end-20:end));
-    params.DisWg = mean(old_params.params.DisWg(end-20:end));
+    params.DetWg = median(old_params.params.DetWg(end-20:end));
+    params.DisWg = median(old_params.params.DisWg(end-20:end));
 else
     params.DetWg = old_params.params.DetWg(end);
     params.DisWg = old_params.params.DisWg(end);
@@ -79,12 +79,14 @@ params.time_to_respond = 1.5;
 params.time_to_conf = 2.5;
 
 
+
+
 %% Number of trials and blocks
 if params.practice
-    params.trialsPerBlock = 8;
+    params.trialsPerBlock = 4;
     params.Nblocks = 1;
 elseif calibration
-    params.trialsPerBlock = 80;
+    params.trialsPerBlock = 100;
     params.Nblocks = 2;
 else
     params.trialsPerBlock = 40;
@@ -151,7 +153,7 @@ elseif params.practice == 1
     params.vTask = [0,0];
     params.onsets = cumsum(6*ones(params.Nsets));
 else
-    params.run_duration = 9.5*60; %seconds;
+    params.run_duration = 600; %seconds;
     [params.vDirection, params.vWg, params.vTask, params.onsets] = ...
     get_trials_params(params);
 end

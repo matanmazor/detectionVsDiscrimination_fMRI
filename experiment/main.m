@@ -69,7 +69,7 @@ log.events = [];
 
 
 %% WAIT FOR 5
-% Wait for the 6th volume to start the experiment. 
+% Wait for the 6th volume to start the experiment.
 
 excludeVolumes = 5;
 if params.multiband
@@ -142,12 +142,12 @@ for num_trial = 1:params.Nsets
     end
     
     % Monitor and update thw Wg parameter based on performance every 20
-    % trials. 
+    % trials.
     if mod(num_trial, 20)==1 && mod(num_trial,params.trialsPerBlock)~=1
         current_performance = mean(log.correct(num_trial-20:num_trial-1));
         if current_performance>0.9
             params.Wg = params.Wg*0.8;
-        elseif current_performance<0.5
+        elseif current_performance<0.55
             params.Wg = params.Wg/0.8;
         end
         if detection
@@ -176,111 +176,133 @@ for num_trial = 1:params.Nsets
         keysPressed = queryInput();
     end
     
-    % Present the fixation cross.
-    DrawFormattedText(w, '+','center','center');
-    vbl=Screen('Flip', w);
+    response = [nan nan];
     
     while toc(global_clock)<params.onsets(num_trial)
+        % Present the fixation cross.
+        DrawFormattedText(w, '+','center','center');
+        vbl=Screen('Flip', w);
         keysPressed = queryInput();
     end
     
     % Present the stimulus.
     tini = GetSecs;
-    Screen('DrawTextures',w,target, [], [], 45);
-    vbl=Screen('Flip', w);
-    
     % The onset of the stimulus is encoded in the log as '0'.
     log.events = [log.events; 0 toc(global_clock)];
     
     while (GetSecs - tini)<params.display_time
+        Screen('DrawTextures',w,target, [], [], 45);
+        vbl=Screen('Flip', w);
         keysPressed = queryInput();
     end
     
     % Present the fixation cross.
-    DrawFormattedText(w, '+','center','center');
-    vbl=Screen('Flip', w);
-    while (GetSecs - tini)<params.display_time+0.1
+    while (GetSecs - tini)<params.display_time+0.2
+        DrawFormattedText(w, '+','center','center');
         keysPressed = queryInput();
-    end
-    
-    %% Wait for response
-    response = [nan nan];
-    
-    if detection
-        while (GetSecs - tini)<params.display_time+params.time_to_respond
-            Screen('DrawTexture', w, params.yesTexture, [], params.positions{params.yes}, ...
-                [],[], 0.5+0.5*(response(2)==1))
-            Screen('DrawTexture', w, params.noTexture, [], params.positions{3-params.yes},...
-                [],[], 0.5+0.5*(response(2)==0))
-            vbl=Screen('Flip', w);
-            keysPressed = queryInput();
+        if detection
             if keysPressed(KbName(params.keys{params.yes}))
                 response = [GetSecs-tini 1];
             elseif keysPressed(KbName(params.keys{3-params.yes}))
                 response = [GetSecs-tini 0];
             end
-        end
-        
-    else %discrimination
-        while (GetSecs - tini)<params.display_time+params.time_to_respond
-            Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical},...
-                45,[],0.5+0.5*(response(2)==1))
-            Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},...
-                45,[],0.5+0.5*(response(2)==3))
-            vbl=Screen('Flip', w);
-            keysPressed = queryInput();
+        else
             if keysPressed(KbName(params.keys{params.vertical}))
                 response = [GetSecs-tini 1];
             elseif keysPressed(KbName(params.keys{3-params.vertical}))
-                response = [GetSecs-tini 3];
+                response = [GetSecs-tini 0];
             end
         end
+        vbl=Screen('Flip', w);
     end
-    
-    % Write to log.
-    log.resp(num_trial,:) = response;
-    log.stimTime{num_trial} = vbl;
-    if keysPressed(KbName('ESCAPE'))
-        Screen('CloseAll');
-    end
-    
-    % Check if the response was accurate or not
-    if detection
-        if log.resp(num_trial,2)== sign(params.vWg(num_trial))
-            log.correct(num_trial) = 1;
-        else
-            log.correct(num_trial) = 0;
+        
+        %% Wait for response
+        
+        if detection
+            while (GetSecs - tini)<params.display_time+params.time_to_respond
+                Screen('DrawTexture', w, params.yesTexture, [], params.positions{params.yes}, ...
+                    [],[], 0.5+0.5*(response(2)==1))
+                Screen('DrawTexture', w, params.noTexture, [], params.positions{3-params.yes},...
+                    [],[], 0.5+0.5*(response(2)==0))
+                keysPressed = queryInput();
+                if keysPressed(KbName(params.keys{params.yes}))
+                    response = [GetSecs-tini 1];
+                elseif keysPressed(KbName(params.keys{3-params.yes}))
+                    response = [GetSecs-tini 0];
+                end
+                vbl=Screen('Flip', w);
+            end
+            
+        else %discrimination
+            while (GetSecs - tini)<params.display_time+params.time_to_respond
+                Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical},...
+                    45,[],0.5+0.5*(response(2)==1))
+                Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},...
+                    45,[],0.5+0.5*(response(2)==3))
+                vbl=Screen('Flip', w);
+                keysPressed = queryInput();
+                if keysPressed(KbName(params.keys{params.vertical}))
+                    response = [GetSecs-tini 1];
+                elseif keysPressed(KbName(params.keys{3-params.vertical}))
+                    response = [GetSecs-tini 3];
+                end
+            end
         end
-    else
-        if log.resp(num_trial,2) == params.vDirection(num_trial)
-            log.correct(num_trial) = 1;
-        else
-            log.correct(num_trial) = 0;
+        
+        % Write to log.
+        log.resp(num_trial,:) = response;
+        log.stimTime{num_trial} = vbl;
+        if keysPressed(KbName('ESCAPE'))
+            Screen('CloseAll');
         end
-    end    
+        
+        % Check if the response was accurate or not
+        if detection && ~isnan(log.resp(num_trial,2))
+            if log.resp(num_trial,2)== sign(params.vWg(num_trial))
+                log.correct(num_trial) = 1;
+            else
+                log.correct(num_trial) = 0;
+            end
+        elseif ~detection && ~isnan(log.resp(num_trial,2))
+            if log.resp(num_trial,2) == params.vDirection(num_trial)
+                log.correct(num_trial) = 1;
+            else
+                log.correct(num_trial) = 0;
+            end
+        end
+        
+        %% CONFIDENCE JUDGMENT
+        if ~isnan(response(2))
+            log.confidence(num_trial) = rateConf();
+        end
+    end
     
-    %% CONFIDENCE JUDGMENT
-    if ~isnan(response(2))
-        log.confidence(num_trial) = rateConf();
+    if ~params.practice
+        Screen('DrawDots', w, [0 02]', ...
+            params.fixation_diameter_px, [255 255 255]*0.4, params.center,1);
+        vbl=Screen('Flip', w);%initial flip
+        
+        while toc(global_clock)<params.run_duration
+            keysPressed = queryInput();
+        end
     end
-end
-
-%% MM: write to log
-
-if ~params.practice  
-    answer = questdlg('Should this run be regarded as completed?');
-    if strcmp(answer,'No')
-        params.filename = strcat('ignore_',params.filename); 
-    end
-    log.date = date;
-    log.version = version;
-    save(fullfile('data', params.filename),'params','log');
-    if exist(fullfile('data', ['temp_',params.filename]), 'file')==2
+    
+    %% close
+    Priority(0);
+    ShowCursor
+    Screen('CloseAll');
+    %% MM: write to log
+    
+    if ~params.practice
+        answer = questdlg('Should this run be regarded as completed?');
+        if strcmp(answer,'No')
+            params.filename = strcat('ignore_',params.filename);
+        end
+        log.date = date;
+        log.version = version;
+        save(fullfile('data', params.filename),'params','log');
+        if exist(fullfile('data', ['temp_',params.filename]), 'file')==2
             delete(fullfile('data', ['temp_',params.filename]));
+        end
     end
-end
-
-%% close
-Priority(0);
-ShowCursor
-Screen('CloseAll');
+    
