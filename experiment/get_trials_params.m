@@ -16,21 +16,21 @@ end
 for i=1:length(vTask)
     
     detection = vTask(i);
-    block_array = [ones(Nsets/(Nblocks*4),1) ones(Nsets/(Nblocks*4),1); ...
-        zeros(Nsets/(Nblocks*4),1) ones(Nsets/(Nblocks*4),1);...
-        ones(Nsets/(Nblocks*4),1) 3*ones(Nsets/(Nblocks*4),1); ...
-        zeros(Nsets/(Nblocks*4),1) 3*ones(Nsets/(Nblocks*4),1)];
+    block_array = [ones(params.trialsPerBlock/4,1) ones(params.trialsPerBlock/4,1); ...
+        zeros(params.trialsPerBlock/4,1) ones(params.trialsPerBlock/4,1);...
+        ones(params.trialsPerBlock/4,1) 3*ones(params.trialsPerBlock/4,1); ...
+        zeros(params.trialsPerBlock/4,1) 3*ones(params.trialsPerBlock/4,1)];
     if ~detection
         block_array(:,1)=1;
     end
     
     %% randomize
-    block_array = block_array(randperm(Nsets/Nblocks),:);
+    block_array = block_array(randperm(params.trialsPerBlock),:);
     vWg = [vWg; block_array(:,1)];
     vDirection = [vDirection; block_array(:,2)];
 end
     trial_duration = params.fixation_time + params.display_time...
-        + params.time_to_respond + params.time_to_conf;
+        + params.time_to_respond + params.time_to_conf+0.8;
     used_time = trial_duration*length(vWg)+10*length(vTask);
     spare_time = params.run_duration-used_time;
     gitter_vec = Scale(rand(size(vWg)));
