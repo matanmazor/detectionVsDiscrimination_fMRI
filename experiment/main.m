@@ -25,7 +25,7 @@ global params
 global global_clock
 global w %psychtoolbox window
 
-prompt = {'Name: ', 'Practice: ', 'Multiband: '};
+prompt = {'Name: ', 'Practice: ', 'Scanning: '};
 dlg_title = 'Filename'; % title of the input dialog box
 num_lines = 1; % number of input lines
 default = {'999MaMa','0','0'}; % default filename
@@ -72,11 +72,7 @@ log.events = [];
 % Wait for the 6th volume to start the experiment.
 
 excludeVolumes = 5;
-if params.multiband
-    slicesperVolume = 36;
-else
-    slicesperVolume = 48;
-end
+slicesperVolume = 48;
 
 %initialize
 num_five = 0;

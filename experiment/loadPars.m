@@ -3,7 +3,7 @@ function params = loadPars(w, rect, savestr, calibration)
 params.scanner_signal = KbName('5%');
 params.subj = savestr{1};
 params.practice = str2double(savestr{2});
-params.multiband = str2double(savestr{3});
+params.scanning = str2double(savestr{3});
 
     
 load(fullfile('data','subjects.mat'));
@@ -49,8 +49,8 @@ end
 
 params.waitframes = 1; 
 if params.practice || calibration
-    params.DetWg = 0.1;
-    params.DisWg = 0.1;
+    params.DetWg = 0.08;
+    params.DisWg = 0.08;
 elseif ~exist('old_params') 
     old_params = load(fullfile('data',strjoin({params.subj,'calibration.mat'},'_')));
     params.DetWg = mean(old_params.params.DetWg(end-20:end));
@@ -61,18 +61,25 @@ else
     % 0.85, in which case multiply or divide by a factor of 0.85. These
     % numbers were chosen because the likelihood of reaching these levels
     % of accuracy when performance is at 0.71 is around 1 percent.
+    if params.scanning
+        lower_bound = 0.525;
+        upper_bound = 0.85;
+    else
+        lower_bound = 0.6;
+        upper_bound = 0.8;
+    end
     
-    if nanmean(old_params.log.correct(find(old_params.log.detection)))<=0.525
+    if nanmean(old_params.log.correct(find(old_params.log.detection)))<=lower_bound
             params.DetWg = old_params.params.DetWg(end)/0.9;
-    elseif nanmean(old_params.log.correct(find(old_params.log.detection)))>=0.85
+    elseif nanmean(old_params.log.correct(find(old_params.log.detection)))>=upper_bound
             params.DetWg = old_params.params.DetWg(end)*0.9;
     else
             params.DetWg = old_params.params.DetWg(end);
     end
     
-    if nanmean(old_params.log.correct(find(1-old_params.log.detection)))<=0.525
+    if nanmean(old_params.log.correct(find(1-old_params.log.detection)))<=lower_bound
         params.DisWg = old_params.params.DisWg(end)/0.9;
-    elseif nanmean(old_params.log.correct(find(1-old_params.log.detection)))>=0.85
+    elseif nanmean(old_params.log.correct(find(1-old_params.log.detection)))>=upper_bound
         params.DisWg = old_params.params.DisWg(end)*0.9;
     else
         params.DisWg = old_params.params.DisWg(end);

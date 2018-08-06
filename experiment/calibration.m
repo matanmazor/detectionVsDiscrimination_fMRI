@@ -88,7 +88,7 @@ for num_trial = 1:params.Nsets
     if mod(num_trial,round(params.trialsPerBlock))<20
         step_size = 0.01;
     else
-        step_size = 0.002;
+        step_size = 0.005;
     end
     
     if mod(num_trial,round(params.trialsPerBlock))==1
@@ -230,40 +230,35 @@ for num_trial = 1:params.Nsets
         end
     end
     %MM: end of decision phase
-    
     % monitor and update coherence levels
-    if mod(num_trial, params.trialsPerBlock)>5 %don't staircase for the first 5 trials
-        if ~log.correct(num_trial)
+    if mod(num_trial, 10)==0
+        if nanmean(log.correct(num_trial-9:num_trial))<0.6
             params.Wg = params.Wg+step_size;
-            correct_count=0;
-        elseif correct_count==1 && log.correct(num_trial)
+        elseif nanmean(log.correct(num_trial-9:num_trial))>0.8
             params.Wg = params.Wg-step_size;
-            correct_count=0;
-        else
-            correct_count = correct_count+1;
-        end
-        if detection
-            params.DetWg = [params.DetWg; params.Wg];
-        else
-            params.DisWg = [params.DisWg; params.Wg];
+            if detection
+                params.DetWg = [params.DetWg; params.Wg];
+            else
+                params.DisWg = [params.DisWg; params.Wg];
+            end
         end
     end
 end
-
-
-%% MM: write to log
-%MM: experimento is the log variable that includes all experiment
-%parameters and results.
-if ~params.practice
     
-    log.date = date;
-    log.filename = params.filename;
-    log.version = version;
-    save(fullfile('data', params.filename),'params','log');
     
-end
-
-%% close
-Priority(0);
-ShowCursor
-Screen('CloseAll');
+    %% MM: write to log
+    %MM: experimento is the log variable that includes all experiment
+    %parameters and results.
+    if ~params.practice
+        
+        log.date = date;
+        log.filename = params.filename;
+        log.version = version;
+        save(fullfile('data', params.filename),'params','log');
+        
+    end
+    
+    %% close
+    Priority(0);
+    ShowCursor
+    Screen('CloseAll');
