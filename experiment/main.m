@@ -2,7 +2,7 @@ clear all
 version = '2018-07-23';
 addpath('..\..\..\2018\preRNG\Matlab')
 
-% PsychDebugWindowConfiguration()
+PsychDebugWindowConfiguration()
 
 %{
   fMRI experiment, run in the Wellcome Centre for Human Neuroimaging.
@@ -140,22 +140,6 @@ for num_trial = 1:params.Nsets
         
         while toc(global_clock)<remove_instruction_time
             keysPressed = queryInput();
-        end
-    end
-    
-    % Monitor and update thw Wg parameter based on performance every 20
-    % trials.
-    if mod(num_trial, 20)==1 && mod(num_trial,params.trialsPerBlock)~=1
-        current_performance = mean(log.correct(num_trial-20:num_trial-1));
-        if current_performance>0.9
-            params.Wg = params.Wg*0.8;
-        elseif current_performance<0.55
-            params.Wg = params.Wg/0.8;
-        end
-        if detection
-            params.DetWg = [params.DetWg; params.Wg];
-        else
-            params.DisWg = [params.DisWg; params.Wg];
         end
     end
     

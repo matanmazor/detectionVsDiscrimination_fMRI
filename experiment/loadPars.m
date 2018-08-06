@@ -56,8 +56,28 @@ elseif ~exist('old_params')
     params.DetWg = median(old_params.params.DetWg(end-20:end));
     params.DisWg = median(old_params.params.DisWg(end-20:end));
 else
-    params.DetWg = old_params.params.DetWg(end);
-    params.DisWg = old_params.params.DisWg(end);
+    % Monitor and update thw Wg parameter based on performance on the
+    % previous run. Don't change unless performance was below 0.525 or above
+    % 0.85, in which case multiply or divide by a factor of 0.85. These
+    % numbers were chosen because the likelihood of reaching these levels
+    % of accuracy when performance is at 0.71 is around 1 percent.
+    
+    if nanmean(old_params.log.correct(find(old_params.log.detection)))<0.525
+            params.DetWg = old_params.params.DetWg(end)/0.85;
+    elseif nanmean(old_params.log.correct(find(old_params.log.detection)))>0.85
+            params.DetWg = old_params.params.DetWg(end)*0.85;
+    else
+            params.DetWg = old_params.params.DetWg(end);
+    end
+    
+    if nanmean(old_params.log.correct(find(1-old_params.log.detection)))<0.525
+        params.DisWg = old_params.params.DisWg(end)/0.85;
+    elseif nanmean(old_params.log.correct(find(1-old_params.log.detection)))>0.85
+        params.DisWg = old_params.params.DisWg(end)*0.85;
+    else
+        params.DisWg = old_params.params.DisWg(end);
+    end
+    
 end
 
 %% Visual properties
