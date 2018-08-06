@@ -2,7 +2,7 @@ clear all
 version = '2018-07-23';
 addpath('..\..\..\2018\preRNG\Matlab')
 
-PsychDebugWindowConfiguration()
+% PsychDebugWindowConfiguration()
 
 %{
   fMRI experiment, run in the Wellcome Centre for Human Neuroimaging.

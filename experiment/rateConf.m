@@ -29,13 +29,10 @@ while toc(timer)<params.time_to_conf
     
     Screen('Flip',w);
     keysPressed = queryInput();
-    %     if keysPressed(KbName('3#'))
-    %         rating=max(1,rating-1);
     if keysPressed(KbName('6^'))
-        rating = mod(rating+1,6);
-        if rating == 0
-            rating=6;
-        end
+        rating=max(1,rating-1);
+    elseif keysPressed(KbName('7&'))
+        rating=min(6,rating+1);
     end
 end
 

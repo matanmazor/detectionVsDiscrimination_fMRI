@@ -53,8 +53,8 @@ if params.practice || calibration
     params.DisWg = 0.1;
 elseif ~exist('old_params') 
     old_params = load(fullfile('data',strjoin({params.subj,'calibration.mat'},'_')));
-    params.DetWg = median(old_params.params.DetWg(end-20:end));
-    params.DisWg = median(old_params.params.DisWg(end-20:end));
+    params.DetWg = mean(old_params.params.DetWg(end-20:end));
+    params.DisWg = mean(old_params.params.DisWg(end-20:end));
 else
     % Monitor and update thw Wg parameter based on performance on the
     % previous run. Don't change unless performance was below 0.525 or above
@@ -62,18 +62,18 @@ else
     % numbers were chosen because the likelihood of reaching these levels
     % of accuracy when performance is at 0.71 is around 1 percent.
     
-    if nanmean(old_params.log.correct(find(old_params.log.detection)))<0.525
-            params.DetWg = old_params.params.DetWg(end)/0.85;
-    elseif nanmean(old_params.log.correct(find(old_params.log.detection)))>0.85
-            params.DetWg = old_params.params.DetWg(end)*0.85;
+    if nanmean(old_params.log.correct(find(old_params.log.detection)))<=0.525
+            params.DetWg = old_params.params.DetWg(end)/0.9;
+    elseif nanmean(old_params.log.correct(find(old_params.log.detection)))>=0.85
+            params.DetWg = old_params.params.DetWg(end)*0.9;
     else
             params.DetWg = old_params.params.DetWg(end);
     end
     
-    if nanmean(old_params.log.correct(find(1-old_params.log.detection)))<0.525
-        params.DisWg = old_params.params.DisWg(end)/0.85;
-    elseif nanmean(old_params.log.correct(find(1-old_params.log.detection)))>0.85
-        params.DisWg = old_params.params.DisWg(end)*0.85;
+    if nanmean(old_params.log.correct(find(1-old_params.log.detection)))<=0.525
+        params.DisWg = old_params.params.DisWg(end)/0.9;
+    elseif nanmean(old_params.log.correct(find(1-old_params.log.detection)))>=0.85
+        params.DisWg = old_params.params.DisWg(end)*0.9;
     else
         params.DisWg = old_params.params.DisWg(end);
     end
