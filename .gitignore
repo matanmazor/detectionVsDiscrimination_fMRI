@@ -1,1 +1,14 @@
-data
+# Windows default autosave extension
+*.asv
+
+# Compiled MEX binaries (all platforms)
+*.mex
+
+# Simulink autosave extension
+*.autosave
+
+# Imaging files
+*.nii
+*.nii.gz
+*.dcm
+*.tar
