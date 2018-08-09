@@ -1,4 +1,4 @@
-function [vDirection,vWg,vTask] = get_trials_params(params)
+function [vDirection,vCoh,vTask] = get_trials_params(params)
 
 Nsets = params.Nsets;
 Nblocks = params.Nblocks;
@@ -11,7 +11,7 @@ if binornd(1,0.5)
     vTask = 1-vTask;
 end
 %initialize
-[vDirection, vWg] = deal([]);
+[vDirection, vCoh] = deal([]);
 
 for i=1:length(vTask)
     
@@ -26,14 +26,7 @@ for i=1:length(vTask)
     
     %% randomize
     block_array = block_array(randperm(Nsets/Nblocks),:);
-    vWg = [vWg; block_array(:,1)];
+    vCoh = [vCoh; block_array(:,1)];
     vDirection = [vDirection; block_array(:,2)];
 end
-    trial_duration = params.fixation_time + params.display_time...
-        + params.time_to_respond + params.time_to_conf;
-    used_time = trial_duration*length(vWG)+5*length(vTask);
-    spare_time = params.run_duration-used_time;
-    gitter_vec = Scale(rand(size(vWg)));
-    gitter_vec = gitter_vec/sum(gitter_vec)*spare_time;
-    
 end

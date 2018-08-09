@@ -49,12 +49,12 @@ end
 
 params.waitframes = 1; 
 if params.practice || calibration
-    params.DetWg = 0.08;
-    params.DisWg = 0.08;
+    params.DetWg = 0.07;
+    params.DisWg = 0.07;
 elseif ~exist('old_params') 
     old_params = load(fullfile('data',strjoin({params.subj,'calibration.mat'},'_')));
-    params.DetWg = mean(old_params.params.DetWg(end-20:end));
-    params.DisWg = mean(old_params.params.DisWg(end-20:end));
+    params.DetWg = old_params.params.DetWg(end);
+    params.DisWg = old_params.params.DisWg(end);
 else
     % Monitor and update thw Wg parameter based on performance on the
     % previous run. Don't change unless performance was below 0.525 or above
@@ -79,9 +79,24 @@ else
     
     if nanmean(old_params.log.correct(find(1-old_params.log.detection)))<=lower_bound
         params.DisWg = old_params.params.DisWg(end)/0.9;
+        
     elseif nanmean(old_params.log.correct(find(1-old_params.log.detection)))>=upper_bound
         params.DisWg = old_params.params.DisWg(end)*0.9;
-    else
+        
+    elseif nanmean(old_params.log.correct(find(1-old_params.log.detection)))>=...
+            nanmean(old_params.log.correct(find(old_params.log.detection)))+...
+            (upper_bound-lower_bound)/2&& ...
+            params.DetWg == old_params.params.DetWg(end)
+        params.DetWg = old_params.params.DetWg(end)*sqrt(0.9);
+        params.DisWg = old_params.params.DisWg(end)/sqrt(0.9);
+        
+     elseif nanmean(old_params.log.correct(find(1-old_params.log.detection)))<=...
+            nanmean(old_params.log.correct(find(old_params.log.detection)))-...
+            (upper_bound-lower_bound)/2&& ...
+            params.DetWg == old_params.params.DetWg(end)
+        params.DetWg = old_params.params.DetWg(end)/sqrt(0.9);
+        params.DisWg = old_params.params.DisWg(end)*sqrt(0.9);
+    else 
         params.DisWg = old_params.params.DisWg(end);
     end
     
@@ -180,7 +195,7 @@ elseif params.practice == 1
     params.vTask = [0,0];
     params.onsets = cumsum(6*ones(params.Nsets));
 else
-    params.run_duration = 600; %seconds;
+    params.run_duration = 601.44; %seconds = 179 TRs;
     [params.vDirection, params.vWg, params.vTask, params.onsets] = ...
     get_trials_params(params);
 end

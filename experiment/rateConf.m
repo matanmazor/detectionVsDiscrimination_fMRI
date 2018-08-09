@@ -3,6 +3,14 @@ function [rating]= rateConf()
 global params
 global w
 
+if params.conf_mapping==1
+    increase_key =KbName('6^');
+    decrease_key = KbName('7&');
+elseif params.conf_mapping==2
+    increase_key =KbName('7&');
+    decrease_key = KbName('6^');
+end
+
 timer = tic();
 
 % initial confidence rating is determined randomly
@@ -29,10 +37,11 @@ while toc(timer)<params.time_to_conf
     
     Screen('Flip',w);
     keysPressed = queryInput();
-    if keysPressed(KbName('6^'))
+    if keysPressed(decrease_key)
         rating=max(1,rating-1);
-    elseif keysPressed(KbName('7&'))
+    elseif keysPressed(increase_key)
         rating=min(6,rating+1);
+        
     end
 end
 
