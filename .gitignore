@@ -7,6 +7,9 @@
 # Simulink autosave extension
 *.autosave
 
+# Matlab data files
+*.mat
+
 # Imaging files
 *.nii
 *.nii.gz
