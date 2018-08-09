@@ -5,7 +5,6 @@ addpath('..\..\..\2018\preRNG\Matlab')
 
 %PsychDebugWindowConfiguration()
 
-
 global log
 global params
 global global_clock
@@ -244,21 +243,26 @@ for num_trial = 1:params.Nsets
         end
     end
 end
+
+
+%% MM: write to log
+%MM: experimento is the log variable that includes all experiment
+%parameters and results.
+if ~params.practice
     
+    log.date = date;
+    log.filename = params.filename;
+    log.version = version;
+    save(fullfile('data', params.filename),'params','log');
     
-    %% MM: write to log
-    %MM: experimento is the log variable that includes all experiment
-    %parameters and results.
-    if ~params.practice
-        
-        log.date = date;
-        log.filename = params.filename;
-        log.version = version;
-        save(fullfile('data', params.filename),'params','log');
-        
-    end
-    
-    %% close
-    Priority(0);
-    ShowCursor
-    Screen('CloseAll');
+end
+
+if ~params.scanning
+    load gong.mat;
+    soundsc(y);
+end
+
+%% close
+Priority(0);
+ShowCursor
+Screen('CloseAll');

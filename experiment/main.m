@@ -82,7 +82,7 @@ while num_five<excludeVolumes*slicesperVolume
     [ ~, firstPress]= KbQueueCheck;
     if firstPress(params.scanner_signal)
         num_five = num_five+1;
-    elseif firstPress(KbName('6^'))
+    elseif firstPress(KbName('0)'))
         num_five = inf;
     elseif firstPress(KbName('ESCAPE'))
         Screen('CloseAll');
@@ -93,6 +93,7 @@ end
 
 % All timings are relative to the onset of the 6th volume.
 global_clock = tic();
+DisableKeysForKbCheck(KbName('5%'));
 
 %% MAIN LOOP:
 for num_trial = 1:params.Nsets
@@ -273,6 +274,12 @@ end
 Priority(0);
 ShowCursor
 Screen('CloseAll');
+
+if ~params.scanning
+    load gong.mat;
+    soundsc(y);
+end
+
 %% MM: write to log
 
 if ~params.practice
