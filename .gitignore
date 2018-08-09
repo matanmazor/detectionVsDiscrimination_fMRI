@@ -15,3 +15,7 @@
 *.nii.gz
 *.dcm
 *.tar
+*.gz
+*.ima
+
+/data/raw_data
