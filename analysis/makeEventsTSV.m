@@ -1,7 +1,7 @@
-function data_struct = makeEventsTSV(subj_id, scanner_code)
+function [] = makeEventsTSV(subj_id, scanner_code)
 % create a TSV file with event information
 
-fclose('all')
+fclose('all');
 
 subj_files = dir(fullfile('..','experiment','data',[subj_id,'_session*.mat']));
 
@@ -25,7 +25,7 @@ for j = 1:length(subj_files)
     fileID = fopen(file_path,'a');
     
     %field names
-    fprintf(fileID, '%s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \t %s \n', 'onset','duration',...
+    fprintf(fileID, '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n', 'onset','duration',...
         'trial_type','response_time','confidence','detection','stimulus','response','key_id');
     
     %stimulus-response, A - anticlockwise, C - clockwise, Y - grating, N -
@@ -44,7 +44,7 @@ for j = 1:length(subj_files)
             
             %was this trial missed (participant failed to respond on time)?
             if isnan(log.correct(trial_counter))
-                fprintf(fileID,'%.2f \t %.2f \t %s \t %s \t %s \t %d \t %d \t %s \t %s \n', ...
+                fprintf(fileID,'%.2f\t%.2f\t%s\t%s\t%s\t%d\t%d\t%s\t%s\n', ...
                     log.events(event_idx,2),... %onset in seconds
                     params.fixation_time + params.display_time...
                     + params.time_to_respond + params.time_to_conf,... %trial duration
@@ -67,7 +67,7 @@ for j = 1:length(subj_files)
                         (log.resp(trial_counter,2)==1)};
                 end
                 
-                fprintf(fileID, '%.2f \t %.2f \t %s \t %.2f \t %d \t %d \t %d \t %d \t %s \n', ...
+                fprintf(fileID, '%.2f\t%.2f\t%s\t%.2f\t%d\t%d\t%d\t%d\t%s\n', ...
                     log.events(event_idx,2),... %onset in seconds
                     params.fixation_time + params.display_time...
                     + params.time_to_respond + params.time_to_conf,... %trial duration
@@ -80,7 +80,7 @@ for j = 1:length(subj_files)
                     'n/a');
             end
         else %button press
-                    fprintf(fileID,  '%.2f \t %d \t %s \t %s \t %s \t %s \t %s \t %s  \t %d \n', ...
+                    fprintf(fileID,  '%.2f\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%d\n', ...
                     log.events(event_idx,2),... %onset in seconds
                     0,... %button press is modeled as a delta function
                     'button press',...
