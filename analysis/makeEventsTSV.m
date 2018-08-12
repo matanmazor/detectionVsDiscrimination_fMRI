@@ -17,7 +17,7 @@ for j = 1:length(subj_files)
     %% WRITE TSV FILE
     
     %% initialize file
-    file_path = fullfile('..','data',...
+    file_path = fullfile('..','data','data',strcat('sub-',scanner_code),'func',...
         strcat('sub-',scanner_code,'_task-detectdiscrim_run-',sprintf('%02d',j),'_events.tsv'));
     if exist(file_path, 'file')==2
         delete(file_path);
