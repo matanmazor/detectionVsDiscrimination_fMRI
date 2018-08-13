@@ -57,6 +57,14 @@ for event = 1:length(table.onset)
             durations{1} = [durations{1}; 4];
             pmod(1).param{1} = [pmod(1).param{1}; str2num(table.confidence(event,:))];
             pmod(1).poly{1} = 1;
+    elseif strcmp(strtrim(table.trial_type(event,:)),'missed_trial')
+            if length(onsets)==6
+                names{7} = 'missed_trials';
+                onsets{7} = [];
+                durations{7} = [];
+            end
+            onsets{7} = [onsets{7}; table.onset(event,:)];
+            durations{7} = [durations{7}; 4];
     else %incorrect trial
             onsets{2} = [onsets{2}; table.onset(event,:)];
             durations{2} = [durations{2}; 4];
@@ -64,6 +72,9 @@ for event = 1:length(table.onset)
             pmod(2).poly{1} = 1;
     end
 end
+pmod(1).poly{1} = pmod(1).poly{1}-mean(pmod(1).poly{1});
+pmod(2).poly{1} = pmod(2).poly{1}-mean(pmod(2).poly{1});
+
 filename = [events_file(1:end-11),'_DM1.mat'];
 save(filename, 'names','onsets','pmod','durations');
 end
