@@ -1,5 +1,9 @@
 clear all
-version = '2018-07-23';
+version = '2018-08-14';
+
+% add path to the preRNG folder, to support cryptographic time-locking of 
+% hypotheses and analysis plans. Can be downloaded/cloned from
+% github.com/matanmazor/prerng
 addpath('..\..\..\2018\preRNG\Matlab')
 
 % PsychDebugWindowConfiguration()
@@ -13,8 +17,9 @@ addpath('..\..\..\2018\preRNG\Matlab')
     Frontiers in integrative neuroscience,6, 79.
 
   and from
-    
-    
+    Fleming, S. M., Maniscalco, B., Ko, Y., Amendi, N., Ro, T., & Lau, H.
+    (2015). Action-specific disruption of perceptual confidence. 
+    Psychological science, 26(1), 89-98.
 
   Matan Mazor, 2018
 %}
@@ -25,6 +30,12 @@ global params
 global global_clock
 global w %psychtoolbox window
 
+%name: name of subject. Should start with the subject number. The name of
+%the subject should be included in the data/subjects.mat file.
+%practice: 0 for no, 1 for discrimination practice, 2 for detection
+%practice.
+%scanning: 0 for no, 1 for yes. this parameter only affects the sensitivity
+%of the inter-run staircasing procedure.
 prompt = {'Name: ', 'Practice: ', 'Scanning: '};
 dlg_title = 'Filename'; % title of the input dialog box
 num_lines = 1; % number of input lines
@@ -70,6 +81,8 @@ log.events = [];
 
 %% WAIT FOR 5
 % Wait for the 6th volume to start the experiment.
+% The 2d sequence sends a 5 for every slice, so waiting for 48*5 fives 
+% before starting the experiment.
 
 excludeVolumes = 5;
 slicesperVolume = 48;
@@ -77,7 +90,7 @@ slicesperVolume = 48;
 %initialize
 num_five = 0;
 while num_five<excludeVolumes*slicesperVolume
-    Screen('DrawText',w,'Waiting for the scanner.',20,120,[255 255 255])
+    Screen('DrawText',w,'We are just about to begin',20,120,[255 255 255])
     vbl=Screen('Flip', w);
     [ ~, firstPress]= KbQueueCheck;
     if firstPress(params.scanner_signal)
@@ -92,7 +105,10 @@ while num_five<excludeVolumes*slicesperVolume
 end
 
 % All timings are relative to the onset of the 6th volume.
+
 global_clock = tic();
+%stop recording 5s from the scanner, because it seems to be too much for
+%the kbcheck function.
 DisableKeysForKbCheck(KbName('5%'));
 
 %% MAIN LOOP:
@@ -120,7 +136,7 @@ for num_trial = 1:params.Nsets
             Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},45)
         end
         
-        %4. Present instructions on the screen.
+        %4. Present the instructions on the screen.
         DrawFormattedText(w, 'or','center','center');
         DrawFormattedText(w, '?',params.positions{2}(3)+100,'center');
         
@@ -140,6 +156,7 @@ for num_trial = 1:params.Nsets
         end
     end
     
+    % Start actual trials:
     % Generate the stimulus.
     target_xy = generate_stim(params, num_trial);
     target = Screen('MakeTexture',w, target_xy);
@@ -170,7 +187,7 @@ for num_trial = 1:params.Nsets
     
     % Present the stimulus.
     tini = GetSecs;
-    % The onset of the stimulus is encoded in the log as '0'.
+    % The onset of the stimulus is encoded in the log file as '0'.
     log.events = [log.events; 0 toc(global_clock)];
     
     while (GetSecs - tini)<params.display_time
@@ -179,49 +196,40 @@ for num_trial = 1:params.Nsets
         keysPressed = queryInput();
     end
     
-    % Present the fixation cross.
-    while (GetSecs - tini)<params.display_time+0.2
-        DrawFormattedText(w, '+','center','center');
-        keysPressed = queryInput();
-        if detection
-            if keysPressed(KbName(params.keys{params.yes}))
-                response = [GetSecs-tini 1];
-            elseif keysPressed(KbName(params.keys{3-params.yes}))
-                response = [GetSecs-tini 0];
-            end
-        else
-            if keysPressed(KbName(params.keys{params.vertical}))
-                response = [GetSecs-tini 1];
-            elseif keysPressed(KbName(params.keys{3-params.vertical}))
-                response = [GetSecs-tini 0];
-            end
-        end
-        vbl=Screen('Flip', w);
-    end
-    
     %% Wait for response
-    
     if detection
         while (GetSecs - tini)<params.display_time+params.time_to_respond
-            Screen('DrawTexture', w, params.yesTexture, [], params.positions{params.yes}, ...
-                [],[], 0.5+0.5*(response(2)==1))
-            Screen('DrawTexture', w, params.noTexture, [], params.positions{3-params.yes},...
-                [],[], 0.5+0.5*(response(2)==0))
+            
+            %During the first 200 milliseconds a fixation cross appears on
+            %the screen. The subject can respond during this time
+            %nevertheless.
+            if (GetSecs - tini)<params.display_time+0.2
+                DrawFormattedText(w, '+','center','center');
+            else 
+                Screen('DrawTexture', w, params.yesTexture, [], params.positions{params.yes}, ...
+                    [],[], 0.5+0.5*(response(2)==1))
+                Screen('DrawTexture', w, params.noTexture, [], params.positions{3-params.yes},...
+                    [],[], 0.5+0.5*(response(2)==0))
+            end
+            vbl=Screen('Flip', w);
             keysPressed = queryInput();
             if keysPressed(KbName(params.keys{params.yes}))
                 response = [GetSecs-tini 1];
             elseif keysPressed(KbName(params.keys{3-params.yes}))
                 response = [GetSecs-tini 0];
             end
-            vbl=Screen('Flip', w);
         end
         
     else %discrimination
         while (GetSecs - tini)<params.display_time+params.time_to_respond
-            Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical},...
-                45,[],0.5+0.5*(response(2)==1))
-            Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},...
-                45,[],0.5+0.5*(response(2)==3))
+            if (GetSecs - tini)<params.display_time+0.2
+                DrawFormattedText(w, '+','center','center');
+            else 
+                Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical},...
+                    45,[],0.5+0.5*(response(2)==1))
+                Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},...
+                    45,[],0.5+0.5*(response(2)==3))
+            end
             vbl=Screen('Flip', w);
             keysPressed = queryInput();
             if keysPressed(KbName(params.keys{params.vertical}))
@@ -260,6 +268,7 @@ for num_trial = 1:params.Nsets
     end
 end
 
+% Wait for the run to end.
 if ~params.practice
     Screen('DrawDots', w, [0 02]', ...
         params.fixation_diameter_px, [255 255 255]*0.4, params.center,1);
@@ -275,12 +284,14 @@ Priority(0);
 ShowCursor
 Screen('CloseAll');
 
+% Make a gong sound so that I can hear from outside the testing room that
+% the behavioural session is over :-)
 if ~params.scanning
     load gong.mat;
     soundsc(y);
 end
 
-%% MM: write to log
+%% write to log
 
 if ~params.practice
     answer = questdlg('Should this run be regarded as completed?');

@@ -1,5 +1,6 @@
 function keysPressed = queryInput()
-%Query input from button box/scanner and write to log. 
+% QUERYINPUT Query input from button box/scanner and write to log. 
+% Matan Mazor 2018
 
 global log
 global global_clock
@@ -12,6 +13,5 @@ if keysPressed(KbName('ESCAPE'))
    Screen('CloseAll');
 end
 
-    
 end
 

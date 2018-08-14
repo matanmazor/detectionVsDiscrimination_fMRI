@@ -1,6 +1,5 @@
 function [grating gaussianMask] = makeGrating(width,height,contrast,gratingPeriod,gratingPeriodUnits,orientation)
-% grating = makeGrating(width,height,contrast,gratingPeriod,gratingPeriodUnits,orientation)
-%
+
 % Adopted from PTB's GratingDemo.m
 % 
 % Returns a matrix representing pixel values for a sinusoidal grating.

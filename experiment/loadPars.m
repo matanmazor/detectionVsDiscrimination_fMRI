@@ -1,11 +1,17 @@
 function params = loadPars(w, rect, savestr, calibration)
+% LOADPARS load run/session parameters.
+% Strongly based on scripts from Zylberberg, A., Bartfeld, P., & Signman, M. (2012).
+%   The construction of confidence in percpetual decision.
+%   Frontiers in integrative neuroscience,6, 79.
+
+% Matan Mazor, 2018
 
 params.scanner_signal = KbName('5%');
 params.subj = savestr{1};
 params.practice = str2double(savestr{2});
 params.scanning = str2double(savestr{3});
 
-    
+% load the subject list from the data folder.
 load(fullfile('data','subjects.mat'));
 if ismember(params.subj, subjects.keys)
     response_mappings = subjects(params.subj);
@@ -15,7 +21,7 @@ else
     error('Participant is not in subjects list');
 end
     
-%MM: A while-loop to start next session in line.
+% A while-loop to start next session in line.
 if ~params.practice && ~calibration
     num_session=0;
     stopper=0;
@@ -25,6 +31,8 @@ if ~params.practice && ~calibration
                 ['session',num2str(num_session)],'.mat'},'_');
         stopper = isempty(dir(fullfile('data',aux_filename)));
         if ~stopper
+            % if previous run exists, load log and parameters as
+            % 'old_params'
             old_params = load(fullfile('data',aux_filename));
         end
     end
@@ -35,15 +43,22 @@ else
     num_session=0;
     params.filename = strjoin({params.subj,'calibration.mat'},'_');
 end
+
 % Tha mapping between Gabor orientations and right/left alternates between
-% runs. When this equals 1, the 'Yes' response will be on the right.
+% runs. When this equals 1, the 'Yes'/'clockwise' response will be on the right.
 params.yes = mod(params.num_session,2)+1;
+% for historical reasons, 'vertical' is 'clockwise' and 'horizontal' and
+% 'anticlockwise'. 
 params.vertical = mod(params.num_session+1,2)+1;
 
 %% randomize
 if ~params.practice
     subject_num = str2num(params.subj(1:2));
     serial_num = subject_num*100+num_session;
+      % experimental randomization is a deterministic function of the
+      % contents of the protocol folder and the subject number. 
+      % read more here: 
+      % https://medium.com/@mazormatan/cryptographic-preregistration-from-newton-to-fmri-df0968377bb2
       params.protocolSum = preRNG('protocolFolder.zip',serial_num);
 end
 
@@ -78,24 +93,22 @@ else
     end
     
     if nanmean(old_params.log.correct(find(1-old_params.log.detection)))<=lower_bound
-        params.DisWg = old_params.params.DisWg(end)/0.9;
-        
+        params.DisWg = old_params.params.DisWg(end)/0.9;        
     elseif nanmean(old_params.log.correct(find(1-old_params.log.detection)))>=upper_bound
         params.DisWg = old_params.params.DisWg(end)*0.9;
-        
+    
     elseif nanmean(old_params.log.correct(find(1-old_params.log.detection)))>=...
             nanmean(old_params.log.correct(find(old_params.log.detection)))+...
-            (upper_bound-lower_bound)/2&& ...
-            params.DetWg == old_params.params.DetWg(end)
-        params.DetWg = old_params.params.DetWg(end)*sqrt(0.9);
-        params.DisWg = old_params.params.DisWg(end)/sqrt(0.9);
+            (upper_bound-lower_bound)/2&& params.DetWg == old_params.params.DetWg(end)
+        params.DetWg = old_params.params.DetWg(end)/sqrt(0.9);
+        params.DisWg = old_params.params.DisWg(end)*sqrt(0.9);
         
      elseif nanmean(old_params.log.correct(find(1-old_params.log.detection)))<=...
             nanmean(old_params.log.correct(find(old_params.log.detection)))-...
-            (upper_bound-lower_bound)/2&& ...
-            params.DetWg == old_params.params.DetWg(end)
-        params.DetWg = old_params.params.DetWg(end)/sqrt(0.9);
-        params.DisWg = old_params.params.DisWg(end)*sqrt(0.9);
+            (upper_bound-lower_bound)/2&& params.DetWg == old_params.params.DetWg(end)
+        params.DetWg = old_params.params.DetWg(end)*sqrt(0.9);
+        params.DisWg = old_params.params.DisWg(end)/sqrt(0.9);
+    
     else 
         params.DisWg = old_params.params.DisWg(end);
     end
@@ -120,25 +133,25 @@ params.display_time = 1/30;
 params.time_to_respond = 1.5;
 params.time_to_conf = 2.5;
 
-
-
-
 %% Number of trials and blocks
 if params.practice
     params.trialsPerBlock = 4;
     params.Nblocks = 1;
+    params.calibration = 0;
 elseif calibration
+    params.calibration = 1;
     params.trialsPerBlock = 100;
     params.Nblocks = 2;
 else
+    params.calibration = 0;
     params.trialsPerBlock = 40;
     params.Nblocks = 2;
 end
 params.Nsets = params.trialsPerBlock*params.Nblocks;
 
-distance_from_monitor = 77; % en cm
-mon_width = 29; %VERIFICAR, ancho del monitor
-mon_height = 21.5; %VERIFICAR
+distance_from_monitor = 77; % cm
+mon_width = 29; 
+mon_height = 21.5; 
 newResolution.width = 1024;
 newResolution.height = 768;
 cm_per_px_width  = mon_width/newResolution.width;
@@ -163,7 +176,6 @@ params.conf_height_px = round(params.conf_diam_deg/params.deg_per_px_height);
 % circle filter
 x = [1:params.stimulus_width_px] - median(1:params.stimulus_width_px);
 [xx yy] = meshgrid(x);
-
 params.stimRadii    = sqrt(xx.^2 + yy.^2);
 params.circleFilter = (params.stimRadii <= params.stimulus_width_px/2);
 
@@ -183,19 +195,22 @@ params.positions = {[params.center(1)-250, params.center(2)-50,...
 
 params.keys = {'2@','3#'};
 
-%MM: direction and coherence for every trial
-if params.practice == 2
+% determine direction and Wg for every trial
+if params.practice == 2 %practice detection
+    % in the practice sessions there is no guarantee that the number of CW
+    % and CCW trials will be even. It is determined randomly for every
+    % practice session. 
     params.vDirection = ones(params.Nsets,1)+ 2*binornd(1,0.5,params.Nsets,1);
     params.vWg = binornd(1,0.5,params.Nsets,1);
     params.vTask = [1, 1];
     params.onsets = cumsum(6*ones(params.Nsets));
-elseif params.practice == 1
+elseif params.practice == 1 %practice discrimination
     params.vDirection = ones(params.Nsets,1)+ 2*binornd(1,0.5,params.Nsets,1);
     params.vWg = ones(params.Nsets,1);
     params.vTask = [0,0];
     params.onsets = cumsum(6*ones(params.Nsets));
-else
-    params.run_duration = 601.44; %seconds = 179 TRs;
+else % true experimental session or calibration
+    params.run_duration = 601.44; %seconds = 179 TRs of 3.36 seconds;
     [params.vDirection, params.vWg, params.vTask, params.onsets] = ...
     get_trials_params(params);
 end

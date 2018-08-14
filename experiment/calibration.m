@@ -1,19 +1,30 @@
 clear all
-workspace
-version = '2018-05-14';
+version = '2018-08-14';
+
+% add path to the preRNG folder, to support cryptographic time-locking of 
+% hypotheses and analysis plans. Can be downloaded/cloned from
+% github.com/matanmazor/prerng
 addpath('..\..\..\2018\preRNG\Matlab')
 
-%PsychDebugWindowConfiguration()
+% PsychDebugWindowConfiguration()
 
+%global variables
 global log
 global params
+global w %psychtoolbox window
 global global_clock
 
+%necessary for the qeuryInput function
+global_clock = tic();
 
-prompt = {'Name: ', 'Practice ', 'Multiband'};
+%name: name of subject. Should start with the subject number. The name of
+%the subject should be included in the data/subjects.mat file.
+%practice: enter 0.
+%scanning: enter 0.2
+prompt = {'Name: ', 'Practice: ', 'Scanning: '};
 dlg_title = 'Filename'; % title of the input dialog box
 num_lines = 1; % number of input lines
-default = {'Xtest','0','0'}; % default filename
+default = {'999MaMa','0','0'}; % default filename
 savestr = inputdlg(prompt,dlg_title,num_lines,default);
 
 %set preferences and open screen
@@ -22,6 +33,8 @@ screens=Screen('Screens');
 screenNumber=max(screens);
 doublebuffer=1;
 
+%The fMRI button box does not work well with KbCheck. I use KbQueue
+%instead here, to get precise timings and be sensitive to all presses.
 KbQueueCreate;
 KbQueueStart;
 
@@ -40,8 +53,6 @@ Priority(MaxPriority(w));
 % for drawing of smoothed points:
 Screen('BlendFunction', w, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-%MM: initialize log vector for confidence ratings
-log.confidence = nan(params.Nsets,1);
 %MM: initialize decision log
 log.resp = zeros(params.Nsets,2);
 log.detection = nan(params.Nsets,1);
@@ -50,19 +61,18 @@ log.correct = nan(params.Nsets,1);
 log.estimates = [];
 log.events = [];
 
-
 %% WAIT FOR 5
 % Wait for the 6th volume to start the experiment.
 
 num_five = 0;
 
 while num_five<1
-    Screen('DrawText',w,'Waiting for the scanner.',20,120,[255 255 255])
+    Screen('DrawText',w,'We are just about to start.',20,120,[255 255 255])
     vbl=Screen('Flip', w);
     [ ~, firstPress]= KbQueueCheck;
     if firstPress(params.scanner_signal)
         num_five = num_five+1;
-    elseif firstPress(KbName('6^'))
+    elseif firstPress(KbName('0)'))
         num_five = inf;
     elseif firstPress(KbName('ESCAPE'))
         Screen('CloseAll');
@@ -71,25 +81,20 @@ while num_five<1
     end
 end
 
-
-%initialize
-
-% All timings are relative to the onset of the 6th volume.
-global_clock = tic();
-
-
 correct_count = 0; %for staircasing
 
 %% Strart the trials
 for num_trial = 1:params.Nsets
     
     %% for staircasing
-    if mod(num_trial,round(params.trialsPerBlock))<20
+    % Reduce the step size after 20 trials
+    if mod(num_trial,params.trialsPerBlock)<20 && mod(num_trial,params.trialsPerBlock)<20~=0
         step_size = 0.01;
     else
         step_size = 0.005;
     end
     
+    %At the beinning of each block, do:
     if mod(num_trial,round(params.trialsPerBlock))==1
         
         if ~params.practice
@@ -119,11 +124,12 @@ for num_trial = 1:params.Nsets
         end
     end
     
-    %MM: generate the stimulus.
+    % start trials:
+    % generate the stimulus.
     target_xy = generate_stim(params, num_trial);
     target = Screen('MakeTexture',w, target_xy);
     
-    %MM: save to log.
+    %save to log.
     log.Wg(num_trial) = params.vWg(num_trial)*params.Wg;
     log.direction(num_trial) = params.vDirection(num_trial);
     log.xymatrix{num_trial} = target_xy;
@@ -137,28 +143,30 @@ for num_trial = 1:params.Nsets
         params.fixation_diameter_px, [255 255 255]*0.4, params.center,1);
     vbl=Screen('Flip', w);%initial flip
     
+    % since timing is not an issue for the calibration phase, timing is
+    % always relative to the onset of a trial and not the onset of the run.
     trial_clock = tic;
+    
+    % rest of 1 second
     while toc(trial_clock)<1
         keysPressed = queryInput();
     end
     
+    % present fixation cross for 0.5 second
     while toc(trial_clock)<1.5
         DrawFormattedText(w, '+','center','center');
         vbl=Screen('Flip', w);
         keysPressed = queryInput();
     end
     
-    %MM: present stimulus
     
-    %write to log
-    log.events = [log.events; 0 toc(global_clock)];
-    
+    %present stimulus
     while toc(trial_clock)<1.5+params.display_time
         Screen('DrawTextures',w,target, [], [], 45);
         vbl=Screen('Flip', w);
     end
     
-    
+    % wait for response: present cross
     while toc(trial_clock) <params.display_time+1.7
         DrawFormattedText(w, '+','center','center');
         vbl=Screen('Flip', w);
@@ -178,7 +186,7 @@ for num_trial = 1:params.Nsets
         end
     end
     
-    %% Wait for response
+    % wait for response: present response choices.
     if detection
         while toc(trial_clock) < params.display_time+params.time_to_respond+1.2
             Screen('DrawTexture', w, params.yesTexture, [], params.positions{params.yes}, ...
@@ -209,10 +217,7 @@ for num_trial = 1:params.Nsets
             end
         end
     end
-    log.resp(num_trial,:) = response;
-    
-    log.stimTime{num_trial} = vbl;
-    
+    log.resp(num_trial,:) = response;    
     
     % MM: check if the response was accurate or not
     if detection
@@ -228,34 +233,30 @@ for num_trial = 1:params.Nsets
             log.correct(num_trial) = 0;
         end
     end
-    %MM: end of decision phase
+    
+    % end of decision phase
     % monitor and update coherence levels
     if mod(num_trial, 10)==0
         if nanmean(log.correct(num_trial-9:num_trial))<0.6
             params.Wg = params.Wg+step_size;
         elseif nanmean(log.correct(num_trial-9:num_trial))>0.8
             params.Wg = params.Wg-step_size;
-            if detection
-                params.DetWg = [params.DetWg; params.Wg];
-            else
-                params.DisWg = [params.DisWg; params.Wg];
-            end
+        end
+        if detection
+            params.DetWg = [params.DetWg; params.Wg];
+        else
+            params.DisWg = [params.DisWg; params.Wg];
         end
     end
 end
 
 
-%% MM: write to log
-%MM: experimento is the log variable that includes all experiment
-%parameters and results.
-if ~params.practice
-    
-    log.date = date;
-    log.filename = params.filename;
-    log.version = version;
-    save(fullfile('data', params.filename),'params','log');
-    
-end
+%% write to log
+
+log.date = date;
+log.filename = params.filename;
+log.version = version;
+save(fullfile('data', params.filename),'params','log');
 
 if ~params.scanning
     load gong.mat;
