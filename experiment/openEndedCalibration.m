@@ -240,7 +240,7 @@ while num_trial <= params.Nsets
         elseif nanmean(log.correct(num_trial-9:num_trial))>0.8
             params.Wg = params.Wg-0.005;
         else
-            if mod(num_trial, params.trialsPerBlock)>30
+            if mod(num_trial, params.trialsPerBlock)>80
                 if detection && params.DetWg(end-1)==params.DetWg(end)
                     num_trial = ceil(num_trial/params.trialsPerBlock)*params.trialsPerBlock;
                 elseif ~detection && params.DisWg(end-1)==params.DisWg(end)

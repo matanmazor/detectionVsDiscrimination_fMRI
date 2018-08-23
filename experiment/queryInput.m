@@ -7,7 +7,8 @@ global global_clock
 
 [ ~, keysPressed]= KbQueueCheck;
 for i=1:length(find(keysPressed))
-    log.events = [log.events; find(keysPressed,i) toc(global_clock)];
+      key_vec = find(keysPressed,i);
+    log.events = [log.events; key_vec(end) toc(global_clock)];
 end
 if keysPressed(KbName('ESCAPE'))
    Screen('CloseAll');
