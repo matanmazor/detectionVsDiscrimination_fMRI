@@ -1,6 +1,6 @@
 clear all
 version = '2018-08-14';
-% add path to the preRNG folde0273727r, to support cryptographic time-locking of
+% add 0path to the preRNG folde0273727r, to support cryptographic time-locking of
 % hypotheses and analysis plans. Can be downloaded/cloned from
 % github.com/matanmazor/prerng
 addpath('..\..\..\2018\preRNG\Matlab')
@@ -42,7 +42,7 @@ default = {'999MaMa','0','0'}; % default filename
 savestr = inputdlg(prompt,dlg_title,num_lines,default);
 
 %set preferences and open screen
-Screen('Preference','SkipSyncTests', 1)
+% Screen('Preference','SkipSyncTests', 1)
 screens=Screen('Screens');
 screenNumber=max(screens);
 doublebuffer=1;
@@ -113,6 +113,10 @@ DisableKeysForKbCheck(KbName('5%'));
 %% MAIN LOOP:
 for num_trial = 1:params.Nsets
     
+    % Restrat Queue
+    KbQueueFlush;
+    KbQueueStart;
+
     % At the beginning of each experimental block:
     if mod(num_trial,round(params.trialsPerBlock))==1
         
@@ -311,5 +315,4 @@ if ~params.practice
     end
 end
 
-KbQueueFlush
-%555555555555555555555555555555555555555555555555555555555555555555555555555
+%5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555
