@@ -17,6 +17,9 @@ for j = 1:length(subj_files)
     %% WRITE TSV FILE
     
     %% initialize file
+    if ~exist(fullfile('..','data','data',strcat('sub-',scanner_code),'func'),'dir')
+        mkdir(fullfile('..','data','data',strcat('sub-',scanner_code),'func'))
+    end
     file_path = fullfile('..','data','data',strcat('sub-',scanner_code),'func',...
         strcat('sub-',scanner_code,'_task-detectdiscrim_run-',sprintf('%02d',j),'_events.tsv'));
     if exist(file_path, 'file')==2
