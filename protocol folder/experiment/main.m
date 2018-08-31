@@ -1,6 +1,7 @@
 clear all
 version = '2018-08-14';
-% add 0path to the preRNG folde0273727r, to support cryptographic time-locking of
+
+% add path to the preRNG folder, to support cryptographic time-locking of 
 % hypotheses and analysis plans. Can be downloaded/cloned from
 % github.com/matanmazor/prerng
 addpath('..\..\..\2018\preRNG\Matlab')
@@ -17,7 +18,7 @@ addpath('..\..\..\2018\preRNG\Matlab')
 
   and from
     Fleming, S. M., Maniscalco, B., Ko, Y., Amendi, N., Ro, T., & Lau, H.
-    (2015). Action-specific disruption of perceptual confidence.
+    (2015). Action-specific disruption of perceptual confidence. 
     Psychological science, 26(1), 89-98.
 
   Matan Mazor, 2018
@@ -42,7 +43,7 @@ default = {'999MaMa','0','0'}; % default filename
 savestr = inputdlg(prompt,dlg_title,num_lines,default);
 
 %set preferences and open screen
-% Screen('Preference','SkipSyncTests', 1)
+Screen('Preference','SkipSyncTests', 1)
 screens=Screen('Screens');
 screenNumber=max(screens);
 doublebuffer=1;
@@ -80,7 +81,7 @@ log.events = [];
 
 %% WAIT FOR 5
 % Wait for the 6th volume to start the experiment.
-% The 2d sequence sends a 5 for every slice, so waiting for 48*5 fives
+% The 2d sequence sends a 5 for every slice, so waiting for 48*5 fives 
 % before starting the experiment.
 
 excludeVolumes = 5;
@@ -113,10 +114,6 @@ DisableKeysForKbCheck(KbName('5%'));
 %% MAIN LOOP:
 for num_trial = 1:params.Nsets
     
-    % Restrat Queue
-    KbQueueFlush;
-    KbQueueStart;
-
     % At the beginning of each experimental block:
     if mod(num_trial,round(params.trialsPerBlock))==1
         
@@ -128,7 +125,24 @@ for num_trial = 1:params.Nsets
         %2. Set task to detection or discrimination
         detection = params.vTask(ceil(num_trial/params.trialsPerBlock));
         
-        %3. Leave the instructions on the screen for 5 seconds.
+        %3. Load the relevant Wg parameter.
+        if detection
+            params.Wg = params.DetWg(end);
+            Screen('DrawTexture', w, params.yesTexture, [], params.positions{params.yes})
+            Screen('DrawTexture', w, params.noTexture, [], params.positions{3-params.yes})
+        else
+            params.Wg = params.DisWg(end);
+            Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical},45)
+            Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},45)
+        end
+        
+        %4. Present the instructions on the screen.
+        DrawFormattedText(w, 'or','center','center');
+        DrawFormattedText(w, '?',params.positions{2}(3)+100,'center');
+        
+        vbl=Screen('Flip', w);
+        
+        %5. Leave the instructions on the screen for 5 seconds.
         if num_trial==1
             remove_instruction_time=5;
         else
@@ -137,29 +151,7 @@ for num_trial = 1:params.Nsets
                 + params.time_to_respond + params.time_to_conf+0.8+5;
         end
         
-        
-        %4. Load the relevant Wg parameter.
-        if detection
-            params.Wg = params.DetWg(end);
-        else
-            params.Wg = params.DisWg(end);
-        end
-        
-        %5. Present the instructions on the screen.
         while toc(global_clock)<remove_instruction_time
-            
-            if detection
-                Screen('DrawTexture', w, params.yesTexture, [], params.positions{params.yes})
-                Screen('DrawTexture', w, params.noTexture, [], params.positions{3-params.yes})
-            else
-                Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical},45)
-                Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},45)
-            end
-            
-            DrawFormattedText(w, 'or','center','center');
-            DrawFormattedText(w, '?',params.positions{2}(3)+100,'center');
-            
-            vbl=Screen('Flip', w);
             keysPressed = queryInput();
         end
     end
@@ -175,13 +167,12 @@ for num_trial = 1:params.Nsets
     log.xymatrix{num_trial} = target_xy;
     log.detection(num_trial) = detection;
     
-
+    % Present a dot at the centre of the screen.
+    Screen('DrawDots', w, [0 0]', ...
+        params.fixation_diameter_px, [255 255 255]*0.4, params.center,1);
+    vbl=Screen('Flip', w);%initial flip
+    
     while toc(global_clock)<params.onsets(num_trial)-0.5
-        % Present a dot at the centre of the screen.
-        Screen('DrawDots', w, [0 0]', ...
-            params.fixation_diameter_px, [255 255 255]*0.4, params.center,1);
-        vbl=Screen('Flip', w);%initial flip
-   
         keysPressed = queryInput();
     end
     
@@ -214,7 +205,7 @@ for num_trial = 1:params.Nsets
             %nevertheless.
             if (GetSecs - tini)<params.display_time+0.2
                 DrawFormattedText(w, '+','center','center');
-            else
+            else 
                 Screen('DrawTexture', w, params.yesTexture, [], params.positions{params.yes}, ...
                     [],[], 0.5+0.5*(response(2)==1))
                 Screen('DrawTexture', w, params.noTexture, [], params.positions{3-params.yes},...
@@ -233,7 +224,7 @@ for num_trial = 1:params.Nsets
         while (GetSecs - tini)<params.display_time+params.time_to_respond
             if (GetSecs - tini)<params.display_time+0.2
                 DrawFormattedText(w, '+','center','center');
-            else
+            else 
                 Screen('DrawTexture', w, params.vertTexture, [], params.positions{params.vertical},...
                     45,[],0.5+0.5*(response(2)==1))
                 Screen('DrawTexture', w, params.horiTexture, [], params.positions{3-params.vertical},...
@@ -279,7 +270,7 @@ end
 
 % Wait for the run to end.
 if ~params.practice
-    Screen('DrawDots', w, [0 02], ...
+    Screen('DrawDots', w, [0 02]', ...
         params.fixation_diameter_px, [255 255 255]*0.4, params.center,1);
     vbl=Screen('Flip', w);%initial flip
     
@@ -303,10 +294,10 @@ end
 %% write to log
 
 if ~params.practice
-    %     answer = questdlg('Should this run be regarded as completed?');
-    %     if strcmp(answer,'No')
-    %         params.filename = strcat('ignore_',params.filename);
-    %     end
+    answer = questdlg('Should this run be regarded as completed?');
+    if strcmp(answer,'No')
+        params.filename = strcat('ignore_',params.filename);
+    end
     log.date = date;
     log.version = version;
     save(fullfile('data', params.filename),'params','log');
@@ -315,4 +306,3 @@ if ~params.practice
     end
 end
 
-%5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555

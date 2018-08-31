@@ -8,8 +8,6 @@ function params = loadPars(w, rect, savestr, calibration)
 
 params.scanner_signal = KbName('5%');
 params.subj = savestr{1};
-
-
 params.practice = str2double(savestr{2});
 params.scanning = str2double(savestr{3});
 
@@ -66,8 +64,8 @@ end
 
 params.waitframes = 1; 
 if params.practice || calibration
-    params.DetWg = 0.065;
-    params.DisWg = 0.05;
+    params.DetWg = 0.07;
+    params.DisWg = 0.07;
 elseif ~exist('old_params') 
     old_params = load(fullfile('data',strjoin({params.subj,'calibration.mat'},'_')));
     params.DetWg = old_params.params.DetWg(end);
@@ -142,7 +140,7 @@ if params.practice
     params.calibration = 0;
 elseif calibration
     params.calibration = 1;
-    params.trialsPerBlock = 40;
+    params.trialsPerBlock = 100;
     params.Nblocks = 2;
 else
     params.calibration = 0;

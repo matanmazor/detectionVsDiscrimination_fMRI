@@ -2,11 +2,11 @@ clear all
 version = '2018-08-14';
 
 % add path to the preRNG folder, to support cryptographic time-locking of 
-% hypotheses andanalysis plans. Can be downloaded/cloned from
+% hypotheses and analysis plans. Can be downloaded/cloned from
 % github.com/matanmazor/prerng
 addpath('..\..\..\2018\preRNG\Matlab')
 
-% PsychDebugWindowConfiguration()
+PsychDebugWindowConfiguration()
 
 %global variables
 global log

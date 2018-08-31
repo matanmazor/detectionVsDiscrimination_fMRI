@@ -1,8 +1,8 @@
 clear all
 version = '2018-08-14';
 
-% add path to the preRNG folder, to support cryptographic time-locking of 
-% hypotheses andanalysis plans. Can be downloaded/cloned from
+% add path to the preRNG folder, to support cryptographic time-locking of
+% hypotheses and analysis plans. Can be downloaded/cloned from
 % github.com/matanmazor/prerng
 addpath('..\..\..\2018\preRNG\Matlab')
 
@@ -61,6 +61,15 @@ log.correct = nan(params.Nsets,1);
 log.estimates = [];
 log.events = [];
 
+% change parameters:
+params.trialsPerBlock = 1000; %arbitrary large number
+params.Nsets = 2000;
+[params.vDirection, params.vWg, params.vTask, params.onsets] = ...
+    get_trials_params(params);
+
+% has performance level converged yet?
+converged = 0;
+
 %% WAIT FOR 5
 % Wait for the 6th volume to start the experiment.
 
@@ -81,25 +90,14 @@ while num_five<1
     end
 end
 
-correct_count = 0; %for staircasing
-
+num_trial = 1;
 %% Strart the trials
-for num_trial = 1:params.Nsets
-    
-    %% for staircasing
-    % Reduce the step size after 20 trials
-    if mod(num_trial,params.trialsPerBlock)<20 && mod(num_trial,params.trialsPerBlock)<20~=0
-        step_size = 0.01;
-    else
-        step_size = 0.005;
-    end
+while num_trial <= params.Nsets
     
     %At the beinning of each block, do:
     if mod(num_trial,round(params.trialsPerBlock))==1
         
-        if ~params.practice
-            save(fullfile('data', params.filename),'params','log');
-        end
+        save(fullfile('data', params.filename),'params','log');
         
         %detection or not?
         detection = params.vTask(ceil(num_trial/params.trialsPerBlock));
@@ -217,7 +215,7 @@ for num_trial = 1:params.Nsets
             end
         end
     end
-    log.resp(num_trial,:) = response;    
+    log.resp(num_trial,:) = response;
     
     % MM: check if the response was accurate or not
     if detection
@@ -238,9 +236,17 @@ for num_trial = 1:params.Nsets
     % monitor and update coherence levels
     if mod(num_trial, 10)==0
         if nanmean(log.correct(num_trial-9:num_trial))<0.6
-            params.Wg = params.Wg+step_size;
+            params.Wg = params.Wg+0.005;
         elseif nanmean(log.correct(num_trial-9:num_trial))>0.8
-            params.Wg = params.Wg-step_size;
+            params.Wg = params.Wg-0.005;
+        else
+            if mod(num_trial, params.trialsPerBlock)>80
+                if detection && params.DetWg(end-1)==params.DetWg(end)
+                    num_trial = ceil(num_trial/params.trialsPerBlock)*params.trialsPerBlock;
+                elseif ~detection && params.DisWg(end-1)==params.DisWg(end)
+                    num_trial = ceil(num_trial/params.trialsPerBlock)*params.trialsPerBlock;
+                end
+            end
         end
         if detection
             params.DetWg = [params.DetWg; params.Wg];
@@ -248,6 +254,7 @@ for num_trial = 1:params.Nsets
             params.DisWg = [params.DisWg; params.Wg];
         end
     end
+    num_trial = num_trial+1;
 end
 
 
