@@ -1,3 +1,19 @@
-participant_id	sex	age	confidence_mapping
-sub-MP02295	M 	24	1
-sub-MP02302	F	23	2
+participant_id	sex	age	confidence_mapping	hand_laterality	name_initials
+sub-MP02295	M 	24	1	R	pilot1
+sub-MP02302	F	23	2	R	pilot2
+sub-MP02312	F	24	1	R	01RoYi
+sub-MP02313	F	24	2	R	02XiHo
+sub-MP02319	F	21	1 	R	03JaVe
+sub-MP02320	F	24	1	R	04NiSi
+sub-MP02336	F	24	1	R	05PeYa
+sub-MP02324	M 	22	2	R	06KuSh
+sub-MP02325	F	23	1	R	07AnWo
+sub-MP02327	F	20	1	R	08LiBa
+sub-MP02328	F	26	2	R	09KeVa
+sub-MP02332	F	28	2	R	10MaIv
+sub-MP02333	F	25	1	R	11YaSi
+sub-MP02337	M	35	1	R	12JaGu
+sub-MP02338	M	21	1	R	13ChSc
+sub-MP02339	M 	23	2	R	14SaMc	
+sub-MP02340 	F	21	1	R	03JaVe	
+sub-MP02341	F	-	1	R	15ChFi	
