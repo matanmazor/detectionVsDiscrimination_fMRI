@@ -13,8 +13,6 @@ global log
 global params
 global w %psychtoolbox window
 global global_clock
-
-%necessary for the qeuryInput function
 global_clock = tic();
 
 %name: name of subject. Should start with the subject number. The name of
@@ -39,6 +37,7 @@ KbQueueCreate;
 KbQueueStart;
 
 [w, rect] = Screen('OpenWindow', screenNumber, 0,[], 32, doublebuffer+1);
+Screen(w,'TextSize',40)
 
 %load parameters
 params = loadPars(w, rect, savestr, 1);
