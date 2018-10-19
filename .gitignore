@@ -18,4 +18,10 @@
 *.gz
 *.ima
 
+# image files
+*.png
+*.fig
+*.jpg
+
+
 /data/raw_data

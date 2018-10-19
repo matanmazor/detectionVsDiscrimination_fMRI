@@ -1,0 +1,3 @@
+Fieldmap correction was performed with parameter 'maskbrain' 
+set to 0, because otherwise I got an error message. This was
+done after consulting with the physics group.

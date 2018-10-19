@@ -36,13 +36,14 @@ onsets{6} = [];
 durations{6} = [];
 
 
+
 %% 3. loop over events
 for event = 1:length(table.onset)
     if table.trial_type(event,:)=='button press'
-        if str2num(table.key_id(event,:))==50 %middle finger
+        if str2num(table.key_id(event,:))==50 %index finger
             onsets{3} = [onsets{3}; table.onset(event,:)];
             durations{3} = [durations{3}; 0];
-        elseif str2num(table.key_id(event,:))==51 %index finger
+        elseif str2num(table.key_id(event,:))==51 %middle finger
             onsets{4} = [onsets{4}; table.onset(event,:)];
             durations{4} = [durations{4}; 0];
         elseif str2num(table.key_id(event,:))==54 %upper thumb
@@ -72,8 +73,15 @@ for event = 1:length(table.onset)
             pmod(2).poly{1} = 1;
     end
 end
-pmod(1).poly{1} = pmod(1).poly{1}-mean(pmod(1).poly{1});
-pmod(2).poly{1} = pmod(2).poly{1}-mean(pmod(2).poly{1});
+
+%center confidence regressors
+pmod(1).param{1} = pmod(1).param{1}-mean(pmod(1).param{1});
+pmod(2).param{1} = pmod(2).param{1}-mean(pmod(2).param{1});
+
+names{end+1} = 'instructions';
+trial_onsets = table.onset(table.duration>0); %ignore key presses
+onsets{end+1} = [0, trial_onsets(40)+5];
+durations{end+1} = [5,5];
 
 filename = [events_file(1:end-11),'_DM1.mat'];
 save(filename, 'names','onsets','pmod','durations');
