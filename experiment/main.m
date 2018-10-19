@@ -1,15 +1,14 @@
 clear all
 version = '2018-08-14';
-% add 0path to the preRNG folde0273727r, to support cryptographic time-locking of
+% add path to the preRNG folder, to support cryptographic time-locking of
 % hypotheses and analysis plans. Can be downloaded/cloned from
 % github.com/matanmazor/prerng
 addpath('..\..\..\2018\preRNG\Matlab')
-
 % PsychDebugWindowConfiguration()
 
 %{
   fMRI experiment, run in the Wellcome Centre for Human Neuroimaging.
-  Code snnippets adapted from:
+  Code snnippets adapted from:6
 
     Zylberberg, A., Bartfeld, P., & Signman, M. (2012).
     The construction of confidence in percpetual decision.
@@ -42,7 +41,7 @@ default = {'999MaMa','0','0'}; % default filename
 savestr = inputdlg(prompt,dlg_title,num_lines,default);
 
 %set preferences and open screen
-% Screen('Preference','SkipSyncTests', 1)
+Screen('Preference','SkipSyncTests', 1)
 screens=Screen('Screens');
 screenNumber=max(screens);
 doublebuffer=1;
@@ -54,7 +53,7 @@ KbQueueStart;
 
 %Open window.
 [w, rect] = Screen('OpenWindow', screenNumber, 0,[], 32, doublebuffer+1);
-
+Screen(w,'TextSize',40)
 %Load parameters
 params = loadPars(w, rect, savestr, 0);
 
@@ -111,12 +110,9 @@ global_clock = tic();
 DisableKeysForKbCheck(KbName('5%'));
 
 %% MAIN LOOP:
-for num_trial = 1:params.Nsets
-    
+for num_trial = 1:params.Nsets    
     % Restrat Queue
-    KbQueueFlush;
     KbQueueStart;
-
     % At the beginning of each experimental block:
     if mod(num_trial,round(params.trialsPerBlock))==1
         
@@ -300,7 +296,7 @@ if ~params.scanning
     soundsc(y);
 end
 
-%% write to log
+%% write to log3
 
 if ~params.practice
     %     answer = questdlg('Should this run be regarded as completed?');
@@ -315,4 +311,3 @@ if ~params.practice
     end
 end
 
-%5555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555

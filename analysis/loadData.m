@@ -66,7 +66,7 @@ for i=1:length(subjects.keys) %don't analyze dummy subject 999MaMa
                 
                 % load responses
                 subject_data.DisResp = [subject_data.DisResp; ...
-                    log.resp(log.detection==0,2)==3];
+                    (log.resp(log.detection==0,2)-1)/2];
                 subject_data.DetResp = [subject_data.DetResp; ...
                     log.resp(log.detection==1,2)];
                 

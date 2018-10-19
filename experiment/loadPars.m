@@ -66,8 +66,8 @@ end
 
 params.waitframes = 1; 
 if params.practice || calibration
-    params.DetWg = 0.065;
-    params.DisWg = 0.05;
+    params.DetWg = 0.075;
+    params.DisWg = 0.07;
 elseif ~exist('old_params') 
     old_params = load(fullfile('data',strjoin({params.subj,'calibration.mat'},'_')));
     params.DetWg = old_params.params.DetWg(end);
@@ -142,7 +142,7 @@ if params.practice
     params.calibration = 0;
 elseif calibration
     params.calibration = 1;
-    params.trialsPerBlock = 40;
+    params.trialsPerBlock = 100;
     params.Nblocks = 2;
 else
     params.calibration = 0;

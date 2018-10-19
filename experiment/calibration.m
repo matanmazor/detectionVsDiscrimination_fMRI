@@ -39,6 +39,7 @@ KbQueueCreate;
 KbQueueStart;
 
 [w, rect] = Screen('OpenWindow', screenNumber, 0,[], 32, doublebuffer+1);
+Screen(w,'TextSize',40)
 
 %load parameters
 params = loadPars(w, rect, savestr, 1);
