@@ -1,12 +1,11 @@
 function  [ax1,ax2,coefs] = plotQuadFit(project_params, subjects, ROI_label, ROI_name, single_trials)
 
+%this is from colorbrewer: http://colorbrewer2.org/#type=sequential&scheme=BuGn&n=3
+load('cb.mat');
+
 if nargin==4
     single_trials=0;
 end
-
-addpath('D:\Documents\software\cbrewer') %for color
-addpath('D:\Documents\software\sigstar') %for significance
-[cb] = cbrewer('qual','Set1',10,'pchip');
 
 if single_trials
     [ax1_ROI,ax2_ROI, coefs] = printConfByRespSingleTrialModel(project_params, subjects, ROI_label, ROI_name);
@@ -63,10 +62,10 @@ s.Format = 'png';
 s.Width = 15;
 s.Height = 12;
 
-if single_trials
-    hgexport(gcf,['figures/',ROI_label,'single_trials_coefficients'],s);
-else
-    hgexport(gcf,['figures/',ROI_label,'coefficients'],s);
-end
-end
+% if single_trials
+%     hgexport(gcf,['figures/',ROI_label,'single_trials_coefficients'],s);
+% else
+%     hgexport(gcf,['figures/',ROI_label,'coefficients'],s);
+% end
+% end
 

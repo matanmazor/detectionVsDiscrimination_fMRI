@@ -64,7 +64,7 @@ end
 
 
 %% plot
-figure;
+figure('visible','off');
 ax1=subplot(1,2,1); hold on;
 title('detection');
 errorbar(1:6, nanmean(ROI_betas.conf_Y),Y_standard_error,'-k');
@@ -114,11 +114,11 @@ set(gca,'ytick',[]);
 linkaxes([ax1,ax2],'y')
 set(gca,'YColor','none')
 
-fig = gcf;
-fig.PaperUnits = 'inches';
-set(fig,'PaperPositionMode','auto');
-print(sprintf('figures/%s_conf',ROI_label),'-dpng','-r1200');
-print(sprintf('figures/%s_conf_300dpi',ROI_label),'-dpng','-r300');
+% fig = gcf;
+% fig.PaperUnits = 'inches';
+% set(fig,'PaperPositionMode','auto');
+% print(sprintf('figures/%s_conf',ROI_label),'-dpng','-r1200');
+% print(sprintf('figures/%s_conf_300dpi',ROI_label),'-dpng','-r300');
 
 coefs = nan(35,3,4); %subjects, degrees, responses: YNAC
 ROI_conf_betas = cat(3,ROI_betas.conf_Y, ROI_betas.conf_N, ROI_betas.conf_A, ROI_betas.conf_C);
