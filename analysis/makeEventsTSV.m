@@ -5,6 +5,9 @@ fclose('all');
 
 subj_files = dir(fullfile('..','experiment','data',[subj_id,'_session*.mat']));
 
+det_map = containers.Map([0,1],{'N','Y'});
+dis_map = containers.Map([1,3],{'C','A'});
+
 for j = 1:length(subj_files)
     
     load(fullfile('..','experiment','data',subj_files(j).name));
@@ -63,11 +66,11 @@ for j = 1:length(subj_files)
                 
                 % figure out the trial type
                 if log.detection(trial_counter)
-                    trial_type = trial_types{5+2*(log.Wg(trial_counter)>0)+...
-                        log.resp(trial_counter,2)};
-                else
-                    trial_type = trial_types{1+2*(log.direction(trial_counter)==1)+...
-                        (log.resp(trial_counter,2)==1)};
+                    trial_type = ...
+                        [det_map(ceil(log.Wg(trial_counter))), det_map(log.resp(trial_counter,2))];
+                else %discrimination
+                   trial_type = ...
+                       [dis_map(log.direction(trial_counter)), dis_map(log.resp(trial_counter,2))];
                 end
                 
                 fprintf(fileID, '%.2f\t%.2f\t%s\t%.2f\t%d\t%d\t%d\t%d\t%s\n', ...

@@ -7,8 +7,14 @@ subjects = {'01RoYi','02XiHo','03JaVe','04NiSi','05PeYa','06KuSh',...
     '07AnWo','08LiBa', '09KeVa', '10MaIv', '11YaSi', '12JaGu',...
     '13ChSc','14SaMc','15ChFi', '16JoDa', '17IvSi','18LuHe','19ElBo','20MiLa',...
     '21ShZh', '22PeYe','23InMa','24WePi','25AyLe', '26DeCa','27LoLi',...
-    '28WiTa', '29CrRa','30OrAl', '31FeKu', '32EeXu', '33KaBh', '34AlGa','35MaRo'};
+    '28WiTa', '29CrRa','30OrAl', '31FeKu', '32EeXu', '33KaBh', '34AlGa','35MaRo',...
+    '36NaSa','37EmCo','38DeCi','39HoLi', '40ShKh','41NuAn','42WeWu',...
+    '43RuLe','44ZaKe','45ReHi','46DmBu' };
+
+participants = readtable('D:\Documents\projects\inProgress\detectionVsDiscrimination_fMRI\data\data\participants.csv');
+
 toExclude = zeros(length(subjects),5);
+toExcludeFromConfAnalyses = zeros(length(subjects),5);
 
 %% 2. Exclude
 
@@ -23,6 +29,8 @@ for s = 1:length(subjects)
     DisBias = [];
     DetBias = [];
     
+    minErrorCount = [];
+    
     subject = data_struct(subjects{s});
     
     for run_num = 1:length(subject.DisRT)/40
@@ -34,6 +42,20 @@ for s = 1:length(subjects)
         DisMeanResp = nanmean(subject.DisResp((run_num-1)*40+1:run_num*40));
         DetMeanResp = nanmean(subject.DetResp((run_num-1)*40+1:run_num*40));
         
+        %Additional exclusion criterion that is not in the original
+        %preregistered crieria: each run should have at least one of each
+        %error class (C/AC, AC/C, N/Y and Y/N). This is essential becasue
+        %otherwise model specification fails.
+        minErrorNum = min([...
+            sum(subject.DisResp((run_num-1)*40+1:run_num*40)==0 &...
+                    subject.DisCorrect((run_num-1)*40+1:run_num*40)==0),...
+            sum(subject.DetResp((run_num-1)*40+1:run_num*40)==1 &...
+                    subject.DetCorrect((run_num-1)*40+1:run_num*40)==0),... 
+            sum(subject.DisResp((run_num-1)*40+1:run_num*40)==0 &...
+                    subject.DisCorrect((run_num-1)*40+1:run_num*40)==0),...
+            sum(subject.DisResp((run_num-1)*40+1:run_num*40)==1 &...
+                    subject.DisCorrect((run_num-1)*40+1:run_num*40)==0)]);
+                
         DisMisses = [DisMisses DisNaNCount];
         DetMisses = [DetMisses DetNaNCount];
         DisAcc = [DisAcc DisMeanCorrect];
@@ -41,67 +63,107 @@ for s = 1:length(subjects)
         DisBias = [DisBias DisMeanResp];
         DetBias = [DetBias DetMeanResp];
         
-        range = (run_num-1)*40+1:run_num*40;
-        conf_matrix = [hist(subject.DetConf(subject.DetResp(range)==1),1:6);... %yes responses
-                        hist(subject.DetConf(subject.DetResp(range)==0),1:6);... %no responses
-                        hist(subject.DisConf(subject.DisResp(range)==1),1:6);... %CW responses
-                        hist(subject.DisConf(subject.DisResp(range)==0),1:6)];    %CCW responses
+        minErrorCount = [minErrorCount minErrorNum];
+        
+        range = zeros(size(subject.DisRT));
+        range((run_num-1)*40+1:run_num*40)=1;
+        
+        conf_matrix = [hist(subject.DetConf(subject.DetResp==1&range),1:6);... %yes responses
+            hist(subject.DetConf(subject.DetResp==0&range),1:6);... %no responses
+            hist(subject.DisConf(subject.DisResp==1&range),1:6);... %CW responses
+            hist(subject.DisConf(subject.DisResp==0&range),1:6)];    %CCW responses
         normalized_conf_matrix = conf_matrix./(repmat(sum(conf_matrix,2),1,6));
-        if any(normalized_conf_matrix(:)>0.95) 
-            toExclude(s,run_num)=0.5;
+        
+        if any(normalized_conf_matrix(:)>0.95)
+            toExcludeFromConfAnalyses(s,run_num)=1;
         end
         
+    end
+    
+    % unlike the above confidence matrices, that only take into account one
+    % run at a time, this confidence rating is global:
+    global_conf_matrix = [hist(subject.DetConf(subject.DetResp==1&range),1:6);... %yes responses
+        hist(subject.DetConf(subject.DetResp==0),1:6);... %no responses
+        hist(subject.DisConf(subject.DisResp==1),1:6);... %CW responses
+        hist(subject.DisConf(subject.DisResp==0),1:6)];    %CCW responses
+    normalized_global_conf_matrix = conf_matrix./(repmat(sum(conf_matrix,2),1,6));
+    
+    if any(normalized_global_conf_matrix(:)>0.8)
+            toExcludeFromConfAnalyses(s,:)=1;
     end
     
     if any(DisMisses>8)
         
         if mean(DisMisses)>8
-            toExclude(s,:)=toExclude(s,:)+1;
+            toExclude(s,:)=toExclude(s,:)+7;
         else
-            toExclude(s, find(DisMisses>8))=toExclude(s, find(DisMisses>8))+1;
+            toExclude(s, find(DisMisses>8))=toExclude(s, find(DisMisses>8))+7;
         end
     end
     
     if any(DetMisses>8)
         
         if mean(DetMisses)>8
-            toExclude(s,:)= toExclude(s,:)+10;
+            toExclude(s,:)= toExclude(s,:)+60;
         else
-            toExclude(s,find(DetMisses>8))=toExclude(s,find(DetMisses>8))+10;
+            toExclude(s,find(DetMisses>8))=toExclude(s,find(DetMisses>8))+60;
         end
     end
     
     if any(DisAcc<0.6)
         if mean(DisAcc)<0.6
-            toExclude(s,:)=toExclude(s,:)+100;
+            toExclude(s,:)=toExclude(s,:)+500;
         else
-            toExclude(s,find(DisAcc<0.6))=toExclude(s,find(DisAcc<0.6))+100;
+            toExclude(s,find(DisAcc<0.6))=toExclude(s,find(DisAcc<0.6))+500;
         end
     end
     
     if any(DetAcc<0.6)
         if mean(DetAcc)<0.6
-            toExclude(s,:)=toExclude(s,:)+1000;
+            toExclude(s,:)=toExclude(s,:)+4000;
         else
-            toExclude(s,find(DetAcc<0.6))=toExclude(s,find(DetAcc<0.6))+1000;
+            toExclude(s,find(DetAcc<0.6))=toExclude(s,find(DetAcc<0.6))+4000;
         end
     end
     
     if abs(mean(DisBias)-0.5)>0.25
-        toExclude(s,:)=toExclude(s,:)+10000;
+        toExclude(s,:)=toExclude(s,:)+30000;
     elseif any(abs(DisBias-0.5)>0.3)
         toExclude(s,find(abs(DisBias-0.5)>0.3))=...
-            toExclude(s,find(abs(DisBias-0.5)>0.3))+10000;
+            toExclude(s,find(abs(DisBias-0.5)>0.3))+30000;
     end
     
     if abs(mean(DetBias)-0.5)>0.25
-        toExclude(s,:)=toExclude(s,:)+100000;
+        toExclude(s,:)=toExclude(s,:)+200000;
     elseif any(abs(DetBias-0.5)>0.3)
         toExclude(s,find(abs(DetBias-0.5)>0.3))=...
-            toExclude(s,find(abs(DetBias-0.5)>0.3))+100000;
+            toExclude(s,find(abs(DetBias-0.5)>0.3))+200000;
     end
     
-    
+%     if any(minErrorCount==0)
+%         toExclude(s,find(minErrorCount==0))=toExclude(s,find(minErrorCount==0))+1000000;
+%     end
+
+% 3. save exclusion files in participant's directory
+subject_id = participants.participant_id(...
+    strcmp(strtrim(participants.name_initials),subjects{s}));
+func_dir = fullfile('D:\Documents\projects\inProgress\detectionVsDiscrimination_fMRI\data\pp_data\',...
+    strtrim(subject_id{1}),'func'); 
+
+
+fid = fopen( fullfile(func_dir,'exclusion.txt'), 'wt' );
+fprintf( fid, '%d,%d,%d,%d,%d', toExclude(s,1), toExclude(s,2),...
+                    toExclude(s,3),toExclude(s,4), toExclude(s,5));
+fclose(fid);
+
+fid = fopen( fullfile(func_dir,'conf_exclusion.txt'), 'wt' );
+fprintf( fid, '%d,%d,%d,%d,%d', toExcludeFromConfAnalyses(s,1),...
+                                toExcludeFromConfAnalyses(s,2),...
+                                toExcludeFromConfAnalyses(s,3),...
+                                toExcludeFromConfAnalyses(s,4),...
+                                toExcludeFromConfAnalyses(s,5));
+fclose(fid);
+
 end
 
 
