@@ -8,7 +8,7 @@
 *.autosave
 
 # Matlab data files
-*.mat
+#*.mat
 
 # Imaging files
 *.nii
