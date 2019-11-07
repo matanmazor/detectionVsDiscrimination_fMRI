@@ -1,0 +1,56 @@
+participant_id	sex	age	confidence_mapping	hand_laterality	name_initials
+sub-MP02295	M 	24	1	-	pilot1
+sub-MP02302	F	23	2	-	pilot2
+sub-MP02312	F	24	1	R	01RoYi
+sub-MP02313	F	24	2	R	02XiHo
+sub-MP02319	F	-	1 	-	03JaVe
+sub-MP02320	F	-	1	-	04NiSi
+sub-MP02336	F	-	1	-	05PeYa
+sub-MP02324	M 	22	2	R	06KuSh
+sub-MP02325	F	23	1	R	07AnWo
+sub-MP02327	F	20	1	R	08LiBa
+sub-MP02328	F	26	2	R	09KeVa
+sub-MP02332	F	28	2	R	10MaIv
+sub-MP02333	F	25	1	R	11YaSi
+sub-MP02337	M	-	1	-	12JaGu
+sub-MP02338	M	21	1	R	13ChSc
+sub-MP02339	M 	23	2	R	14SaMc	
+sub-MP02340	F	-	-	-	03JaVe
+sub-MP02341	F	21	1	R	15ChFi
+sub-MP02348	M 	26	2	R	16JoDa
+sub-MP02349	F	26	1	R	17IvSi
+sub-MP02350	M 	24	2	R	18LuHe
+sub-MP02351	F	24	1	R	19ElBo
+sub-MP02353	M 	28	2	L	20MiLa
+sub-MP02354	M	27	2	R	21ShZh
+sub-MP02360	F	24	2	R	22PeYe
+sub-MP02361	F	27	1	R	23InMa	
+sub-MP02363	M 	36 	2 	R	24WePi
+sub-MP02364	M 	31	1 	R	25AyLe
+sub-MP02367	F	27	2 	R	26DeCa
+sub-MP02368	F	23	1	R	27LoLi
+sub-MP02376	F	-	1 	R	28WiTa 
+sub-MP02377	M 	20 	2 	R	29CrRa
+sub-MP02378	F	29 	1	L	30OrAl
+sub-MP02384	F	21	1	R	31FeKu
+sub-MP02398	F	20	1	R	32EeXu
+sub-MP02399	M 	28 	2	R	33KaBh
+sub-MP02407	F 	19 	2	R 	34AlGa
+sub-MP02408	M 	20	2	R 	35MaRo  
+sub-MP02417	F	18	2	R	36NaSa		
+sub-MP02425	F	22	2	R	37EmCo
+sub-MP02428	F	21	2	R	38DeCi
+sub-MP02440	M 	21 	2	R	39HoLi
+sub-MP02500	M 	22	1	R	40ShKh
+sub-MP02504	F 	20	2	L	41NuAn
+sub-MP02506	F 	18	2	R	42WeWu
+sub-MP02522	F	20	2	R	43RuLe
+sub-MP02523	F	27	1	R	44ZaKe
+sub-MP02546	M 	27	1	R	45ReHi
+sub-MP02552	M 	21 	2	L	46DmBu
+
+
+
+
+
+
