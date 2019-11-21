@@ -12,6 +12,6 @@ All figures in the paper are fully reproducible with the above data and code.
 ![alt text][logo]
 2. To generate figure 2 (behaviour), run "analysis/makeFig2".
 3. To generate figures 3-5, and appendix figure 4, run "analysis/makeConfCurves". The full brain images for these plots are available on https://neurovault.org/collections/VVLPQBWK/.
-
+4. Multivariate analysis was performed using The Decoding Toolbox on unsmoothed data (Design Matrices 101, 102, and 103). The code for running the classifications is available in "decodeConfidence.mat", "decodeConfidenceCross.mat", "decodeYN.mat" and "decodeYNcross.mat" - all available in the "analysis" folder. The results of the decoding analyses are available in the "analyzed" folder, and can be plotted using the script "analysis/plotClassification.mat".
 
 [logo]: https://github.com/matanmazor/detectionVsDiscrimination_fMRI/blob/master/docs/experimentDesign.png "Logo Title Text 2"
