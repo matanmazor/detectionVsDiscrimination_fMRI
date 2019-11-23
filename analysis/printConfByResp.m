@@ -3,15 +3,8 @@ function [ax1,ax2, coefs] = printConfByResp(project_params, subjects, ROI_label,
 p=project_params;
 load(fullfile(p.raw_dir,'subject_details.mat'));
 
-%add nice things to path
-addpath('D:\Documents\software\cbrewer') %for color
-addpath('D:\Documents\software\sigstar') %for significance
-[cb] = cbrewer('qual','Set1',10,'pchip');
-cb_dis = cbrewer('div','PRGn',18,'pchip');
-cb_det = cbrewer('div','RdBu',18,'pchip');
-cb_dis = cb_dis([2:7,12:17],:);
-cb_det = cb_det([2:7,12:17],:);
-mappingcb = cbrewer('div','BrBG',3);
+%this is from colorbrewer: http://colorbrewer2.org/#type=sequential&scheme=BuGn&n=3
+load('cb.mat');
 
 
 A_num_trials = nan(35,6);
