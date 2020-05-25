@@ -1,5 +1,7 @@
 # Confidence in Detection and Discrimination
 fMRI project looking at the differences between perceptual detection and discrimination.
+
+
 [Mazor, M., Friston, K. J., & Fleming, S. M. (2020). Distinct neural contributions to metacognition for detecting, but not discriminating visual stimuli. Elife, 9, e53900.](https://elifesciences.org/articles/53900)
 
 ## Data
