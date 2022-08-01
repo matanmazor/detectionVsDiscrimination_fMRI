@@ -7,7 +7,7 @@ fMRI project looking at the differences between perceptual detection and discrim
 ## Data
 1. All behavioural data from the 46 participtants is available in BIDS format in 'data/data'.
 2. The analysis scripts use a data structure with all the relevant information: 'data/data_struct.mat'.
-3. Anonymized imaging data is available upon request.
+3. Anonymized imaging data is available in openNeuro (dataset [ds003669](https://openneuro.org/datasets/ds003669)).
 
 ## Figures
 All figures in the paper are fully reproducible with the above data and code.
